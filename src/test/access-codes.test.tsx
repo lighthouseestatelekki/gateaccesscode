@@ -27,8 +27,10 @@ vi.mock("@/lib/supabase", () => ({
       if (table === "access_codes") {
         return {
           select: vi.fn(() => ({
-            order: vi.fn(() => ({
-              limit: mockLimit,
+            neq: vi.fn(() => ({
+              order: vi.fn(() => ({
+                limit: mockLimit,
+              })),
             })),
           })),
         };

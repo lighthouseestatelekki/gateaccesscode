@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronRight, Search } from "lucide-react";
-import { BottomSheet, Button, Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
+import { Link } from "react-router-dom";
+import { BottomSheet, Button, btnClass, Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
 import { staffAdmin } from "@/lib/staffAdmin";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
@@ -94,6 +95,7 @@ function Residents() {
               <div className="flex justify-between"><dt className="text-text-2">Phone</dt><dd className="font-medium">{sel.phone ?? "—"}</dd></div>
             </dl>
             {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
+            <Link to={`/manager/house/${sel.id}`} className={btnClass("primary")}>Codes for this house</Link>
             <Button variant="secondary" disabled={busy} onClick={resetPin}>{busy ? "Resetting…" : "Reset PIN"}</Button>
           </div>
         )}

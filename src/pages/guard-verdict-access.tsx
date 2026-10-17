@@ -13,6 +13,7 @@ type AccessVerdictState = {
   house?: string | number;
   unit?: string;
   holder?: string;
+  job_title?: string | null;
 };
 
 export default function Page() {
@@ -37,7 +38,7 @@ export default function Page() {
   const direction = (state.direction ?? "in").toUpperCase();
   const unitLabel = codeToUnit(state.unit ?? "");
   const rawType = state.type ?? "guest";
-  const typeLabel = ({ guest: "Guest", long_stay: "Long stay", employee: "Employee" } as Record<string, string>)[rawType.toLowerCase()] ?? rawType;
+  const typeLabel = ({ guest: "Guest", long_stay: "Long stay", employee: `Staff${state.job_title ? ` · ${state.job_title}` : ""}` } as Record<string, string>)[rawType.toLowerCase()] ?? rawType;
 
   return (
     <Verdict tone="access" title="ACCESS">

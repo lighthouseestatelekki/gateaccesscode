@@ -31,7 +31,7 @@ function Codes() {
   const load = useCallback(async () => {
     const nowIso = new Date().toISOString();
     let q = supabase.from("access_codes").select("id,code,holder_name,type,valid_from,valid_to,active,used_at,created_at").order("created_at", { ascending: false }).limit(200);
-    if (kind !== "all") q = q.eq("type", kind);
+    q = kind !== "all" ? q.eq("type", kind) : q.neq("type", "employee");
     if (period) q = q.gte("created_at", new Date(Date.now() - period * 24 * 3600_000).toISOString());
     if (status === "Active") q = q.eq("active", true).is("used_at", null).gt("valid_to", nowIso);
     if (status === "Used") q = q.not("used_at", "is", null);

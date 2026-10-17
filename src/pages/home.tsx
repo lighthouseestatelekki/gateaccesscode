@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { Bell, LogOut, Plus, Share2, ShieldAlert, X } from "lucide-react";
+import { Bell, KeyRound, LogOut, Plus, Share2, ShieldAlert, Users, X } from "lucide-react";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { AlertsCard } from "@/components/lh/AlertsCard";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
@@ -59,6 +59,7 @@ function Home() {
     const { data } = await supabase
       .from("access_codes")
       .select("id,code,holder_name,valid_to,valid_from,type,active,used_at,created_at")
+      .neq("type", "employee")
       .order("created_at", { ascending: false })
       .limit(5);
     if (data) setCodes(data as AccessCodeRow[]);
@@ -176,6 +177,10 @@ function Home() {
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
+        <div className="-mt-3 grid grid-cols-2 gap-2">
+          <Link to="/codes" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><KeyRound className="size-4" /> My codes</Link>
+          <Link to="/staff" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><Users className="size-4" /> My staff</Link>
+        </div>
 
         <AlertsCard userId={me?.id} />
 
