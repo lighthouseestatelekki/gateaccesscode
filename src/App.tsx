@@ -45,7 +45,8 @@ function Page({ title, children }: { title: string; children: ReactNode }) {
     document.title = `${title} · Light House Estate`;
     window.scrollTo(0, 0);
   }, [title, pathname]);
-  return <>{children}</>;
+  // A short fade-in on every new screen, so changing screens feels smooth rather than abrupt.
+  return <div key={pathname} className="page-in">{children}</div>;
 }
 
 export default function App() {

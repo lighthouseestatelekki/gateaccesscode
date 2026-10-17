@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { getCached, setCached } from "@/lib/profileCache";
 
 export type GuardProfile = {
   role: string;
@@ -12,7 +13,7 @@ export type GuardProfile = {
 
 export function useGuard(): GuardProfile | null {
   const nav = useNavigate();
-  const [profile, setProfile] = useState<GuardProfile | null>(null);
+  const [profile, setProfile] = useState<GuardProfile | null>(() => getCached("guard"));
 
   useEffect(() => {
     let active = true;
@@ -39,6 +40,7 @@ export function useGuard(): GuardProfile | null {
         return;
       }
 
+      setCached("guard", data);
       setProfile(data as GuardProfile);
     }
     load();

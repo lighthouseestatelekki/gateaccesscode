@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { getCached, setCached } from "@/lib/profileCache";
 
 export type ResidentProfile = {
   role: string;
@@ -14,7 +15,7 @@ export type ResidentProfile = {
 export function useResident(): ResidentProfile | null {
   const nav = useNavigate();
   const { pathname } = useLocation();
-  const [profile, setProfile] = useState<ResidentProfile | null>(null);
+  const [profile, setProfile] = useState<ResidentProfile | null>(() => getCached("resident"));
 
   useEffect(() => {
     let active = true;
@@ -47,6 +48,7 @@ export function useResident(): ResidentProfile | null {
         return;
       }
 
+      setCached("resident", data);
       setProfile(data as ResidentProfile);
     }
     load();

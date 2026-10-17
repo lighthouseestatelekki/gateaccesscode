@@ -199,3 +199,8 @@ html[lang="ar"] body, html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3
 html[dir="rtl"] .code-digits { direction: ltr; unicode-bidi: isolate; }
 html[dir="rtl"] .lucide-chevron-right, html[dir="rtl"] .lucide-arrow-left { transform: scaleX(-1); }
 html[dir="rtl"] .lh-select { background-position: left 12px center; padding-left: 2.25rem; padding-right: 1rem; }
+
+/* Screen change: quick fade and lift. Off for people who prefer less motion. */
+@keyframes page-in { from { opacity: 0.55; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.page-in { animation: page-in 180ms ease-out both; }
+@media (prefers-reduced-motion: reduce) { .page-in { animation: none; } }

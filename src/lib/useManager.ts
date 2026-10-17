@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { getCached, setCached } from "@/lib/profileCache";
 
 export type ManagerProfile = { id: string; role: string; status: string; full_name: string };
 
 /** Loads the signed-in Estate Manager. Anyone else is signed out and sent to /manager/login. */
 export function useManager(): ManagerProfile | null {
   const nav = useNavigate();
-  const [profile, setProfile] = useState<ManagerProfile | null>(null);
+  const [profile, setProfile] = useState<ManagerProfile | null>(() => getCached("manager"));
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -24,6 +25,7 @@ export function useManager(): ManagerProfile | null {
         nav("/manager/login", { replace: true });
         return;
       }
+      setCached("manager", data);
       setProfile(data as ManagerProfile);
     })();
     return () => {

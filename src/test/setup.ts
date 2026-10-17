@@ -18,3 +18,9 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => {},
   }),
 });
+
+// Each test starts with nobody remembered as signed in.
+import { afterEach } from "vitest";
+afterEach(async () => {
+  (await import("@/lib/profileCache")).clearCache();
+});
