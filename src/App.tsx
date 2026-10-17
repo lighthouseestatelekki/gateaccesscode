@@ -35,7 +35,7 @@ import * as Register from "@/pages/register";
 function Page({ title, children }: { title: string; children: ReactNode }) {
   const { pathname } = useLocation();
   useEffect(() => {
-    document.title = `${title} · Lighthouse Lekki`;
+    document.title = `${title} · Lighthouse Estate`;
     window.scrollTo(0, 0);
   }, [title, pathname]);
   return <>{children}</>;

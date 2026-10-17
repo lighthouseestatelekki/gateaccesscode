@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { HadithLine, Hero, Keypad, PinBoxes, Screen, Sheet, usePin, Button } from "@/components/lh/ui";
+import { HadithLine, Hero, Wordmark, Keypad, PinBoxes, Screen, Sheet, usePin, Button } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { pinSignIn } from "@/lib/staffAdmin";
 import { setStaffChoice } from "@/lib/entry";
@@ -32,15 +32,8 @@ function saveHouse(h: House | null) {
 
 function Brand({ right }: { right?: React.ReactNode }) {
   return (
-    <div className="flex min-h-11 items-center justify-between">
-      <span className="flex items-center gap-2 font-display text-base font-bold">
-        <svg width="20" height="20" viewBox="0 0 26 26" aria-hidden className="text-gold">
-          <path d="M10 24h6l-1.2-13h-3.6z" fill="currentColor" />
-          <rect x="9.5" y="6" width="7" height="4" rx="1" fill="currentColor" />
-          <path d="M13 2l3 4h-6z" fill="currentColor" />
-        </svg>
-        Lighthouse Lekki
-      </span>
+    <div className="flex min-h-11 items-center justify-between gap-2">
+      <Wordmark />
       {right}
     </div>
   );
@@ -70,8 +63,8 @@ function PickHouse({ onDone }: { onDone: (h: House) => void }) {
         <Hero>
           <Brand
             right={
-              <button onClick={() => setStep("house")} className="min-h-11 rounded-full bg-white/15 px-4 text-sm font-semibold text-white">
-                Change house
+              <button onClick={() => setStep("house")} className="min-h-10 whitespace-nowrap rounded-full bg-white/15 px-3.5 text-sm font-semibold text-white">
+                Change
               </button>
             }
           />
@@ -107,7 +100,7 @@ function PickHouse({ onDone }: { onDone: (h: House) => void }) {
       <Hero>
         <Brand
           right={
-            <Link to="/register" className="flex min-h-11 items-center rounded-full bg-white/15 px-4 text-sm font-semibold text-white">
+            <Link to="/register" className="flex min-h-10 items-center whitespace-nowrap rounded-full bg-white/15 px-3.5 text-sm font-semibold text-white">
               Register
             </Link>
           }
@@ -223,8 +216,8 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
       <Hero className="pb-16">
         <Brand
           right={
-            <button onClick={onChangeHouse} className="min-h-11 rounded-full bg-white/15 px-4 text-sm font-semibold text-white">
-              Change house
+            <button onClick={onChangeHouse} className="min-h-10 whitespace-nowrap rounded-full bg-white/15 px-3.5 text-sm font-semibold text-white">
+              Change
             </button>
           }
         />

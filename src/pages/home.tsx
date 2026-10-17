@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Share2, ShieldAlert, X } from "lucide-react";
+import { Plus, ShieldAlert, X } from "lucide-react";
+import { CodeTicket, Initial } from "@/components/lh/CodeTicket";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { AlertsCard } from "@/components/lh/AlertsCard";
-import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
-import { computeExpiry, formatCode, formatUntil, formatValidity, shareAccessCode } from "@/lib/expiry";
+import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, Wordmark } from "@/components/lh/ui";
+import { computeExpiry, shareAccessCode } from "@/lib/expiry";
 import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
@@ -27,13 +28,6 @@ type AccessCodeRow = {
   used_at: string | null;
   created_at: string;
 };
-
-function getCodeStatus(c: AccessCodeRow, now: Date): "Active" | "Used" | "Expired" | "Cancelled" {
-  if (c.used_at) return "Used";
-  if (!c.active) return "Cancelled";
-  if (new Date(c.valid_to).getTime() > now.getTime()) return "Active";
-  return "Expired";
-}
 
 function Home() {
   const nav = useNavigate();
@@ -156,18 +150,98 @@ function Home() {
           </Link>
           </div>
         </div>
-        <p className="mt-8 text-base leading-snug text-deep-foreground/80">Assalam Alaekum Waramotullahi Wabarakatu.</p>
-        <h1 className="mt-1 text-4xl font-semibold">{firstName}</h1>
-        <span className="mt-3 inline-flex rounded-full bg-gold px-3.5 py-1.5 text-sm font-bold text-deep-dark">House {profile.house_number} · {unitLabel}</span>
+        <div className="mt-7 flex items-center gap-3.5">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-gold font-display text-2xl font-extrabold text-deep-dark ring-4 ring-white/15">{firstName[0]?.toUpperCase()}</span>
+          <div className="min-w-0">
+            <p className="text-sm leading-snug text-deep-foreground/75">Assalam Alaekum Waramotullahi Wabarakatu</p>
+            <h1 className="truncate text-[2rem] font-extrabold leading-tight">{firstName}</h1>
+          </div>
+        </div>
+        <div className="mt-5 flex items-stretch overflow-hidden rounded-[20px] bg-white/10 ring-1 ring-white/15 backdrop-blur-sm">
+          <div className="flex flex-col justify-center border-r border-white/15 px-4 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gold">House</p>
+            <p className="font-display text-3xl font-extrabold leading-none">{profile.house_number}</p>
+            <p className="mt-1 text-xs font-semibold text-deep-foreground/75">{unitLabel}</p>
+          </div>
+          <div className="grid flex-1 grid-cols-3">
+            {([["Active", counts?.active, "Active"], ["Used", counts?.used, "Used"], ["Total", counts?.total, "All"]] as const).map(([l, n, st]) => (
+              <Link key={l} to="/codes" state={{ status: st }} className="flex flex-col items-center justify-center py-3 hover:bg-white/5">
+                <span className={`font-display text-2xl font-extrabold leading-none ${l === "Active" ? "text-gold" : ""}`}>{n ?? "–"}</span>
+                <span className="mt-1 text-[11px] font-semibold text-deep-foreground/70">{l}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
 
         <AlertsCard userId={me?.id} />
 
+        {recentVisitors.length > 0 && (
+          <section>
+            <div className="mb-3">
+              <h2 className="text-lg font-bold">Invite again</h2>
+              <p className="text-sm text-text-2">Tap a name to make a new code</p>
+            </div>
+            <div className="scrollbar-hidden -mx-5 flex gap-4 overflow-x-auto px-5 pb-1">
+              <Link to="/create-code" className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+                <span className="flex size-14 items-center justify-center rounded-full border-2 border-dashed border-primary/50 text-primary"><Plus className="size-6" /></span>
+                <span className="text-xs font-semibold text-deep">New</span>
+              </Link>
+              {recentVisitors.map((n) => (
+                <button key={n} onClick={() => nav("/create-code", { state: { holderName: n } })} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+                  <Initial name={n} className="size-14 text-xl ring-2 ring-card shadow-[0_6px_14px_-8px_var(--deep)]" />
+                  <span className="w-full truncate text-center text-xs font-semibold">{n.split(/\s+/)[0]}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section>
+          <div className="mb-3 flex items-end justify-between">
+            <div>
+              <h2 className="text-lg font-bold">Latest codes</h2>
+              {counts && counts.active > 0 && <p className="text-sm text-text-2">{counts.active} working right now</p>}
+            </div>
+            {counts && counts.total > 0 && <Link to="/codes" className="inline-flex min-h-11 items-center text-sm font-bold text-primary">See all</Link>}
+          </div>
+          {codes.length === 0 ? (
+            <div className="rounded-[22px] border-2 border-dashed border-border p-6 text-center">
+              <p className="font-semibold">No codes yet</p>
+              <p className="mt-1 text-sm text-text-2">Create one above and share it with your visitor.</p>
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {codes.map((c) => (
+                <CodeTicket
+                  key={c.id}
+                  c={c}
+                  now={now}
+                  onShare={() =>
+                    shareAccessCode({ code: c.code, validTo: c.valid_to, houseNumber: profile.house_number, hostName: profile.full_name, unitLabel, type: c.type, validFrom: c.valid_from })
+                  }
+                  onExtend={() => {
+                    setExtendTarget(c);
+                    setExtendOption("Tomorrow");
+                    setExtendPicked("");
+                    setExtendError("");
+                    setExtending(false);
+                  }}
+                  onCancel={() => {
+                    setCancelTarget(c);
+                    setCancelError("");
+                    setCancelling(false);
+                  }}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
         {banner && (
           <div className="flex items-center gap-3 rounded-lg bg-mint-lightest p-3 pl-4">
-            <p className="flex-1 text-sm text-text-2">Add Lighthouse Lekki to your Home Screen for quick access</p>
+            <p className="flex-1 text-sm text-text-2">Add Lighthouse Estate to your Home Screen for quick access</p>
             <button onClick={async () => { if (!(await promptInstall())) setHow(true); }} className="min-h-11 rounded-sm bg-card px-4 text-sm font-semibold text-deep">How</button>
             <button onClick={() => setBanner(false)} aria-label="Dismiss" className="flex size-11 items-center justify-center text-muted-foreground"><X className="size-4" /></button>
           </div>
@@ -181,112 +255,6 @@ function Home() {
             <p className="text-xs leading-6 text-gold/90">{HADITH_ATTRIBUTION}</p>
             <Link to="/hadith" className="shrink-0 py-2 text-sm font-bold text-primary">More hadith</Link>
           </div>
-        </section>
-
-        {recentVisitors.length > 0 && (
-          <section>
-            <h2 className="mb-3 text-lg font-semibold">Recent visitors</h2>
-            <div className="scrollbar-hidden -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
-              {recentVisitors.map((n) => (
-                <button
-                  key={n}
-                  onClick={() => nav("/create-code", { state: { holderName: n } })}
-                  className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-4 text-sm font-medium"
-                >
-                  <span className="flex size-9 items-center justify-center rounded-full bg-mint-light font-display font-semibold text-deep">{n[0]}</span>{n}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">My codes</h2>
-            {counts && counts.total > 0 && <Link to="/codes" className="inline-flex min-h-11 items-center text-sm font-bold text-primary">See all</Link>}
-          </div>
-          {counts && counts.total > 0 && (
-            <div className="mb-3 grid grid-cols-3 gap-2">
-              {([["Active", counts.active, "bg-mint-light text-deep"], ["Used", counts.used, "bg-muted text-text-2"], ["Total", counts.total, "bg-gold-light text-gold-text"]] as const).map(([l, n, c]) => (
-                <Link key={l} to="/codes" state={{ status: l === "Total" ? "All" : l }} className={`rounded-lg px-3 py-2.5 ${c}`}>
-                  <span className="block font-display text-2xl font-bold">{n}</span>
-                  <span className="block text-xs font-semibold">{l}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-          {codes.length === 0 ? (
-            <p className="rounded-lg bg-muted p-6 text-center text-text-2">No codes yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {codes.map((c) => {
-                const status = getCodeStatus(c, now);
-                return (
-                  <li key={c.id} className="rounded-lg border border-border bg-card p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className={`code-digits text-3xl font-bold ${status === "Active" ? "text-deep" : "text-muted-foreground"}`}>{formatCode(c.code)}</p>
-                      <StatusChip status={status} />
-                    </div>
-                    <p className="mt-1 font-medium">{c.holder_name}{c.type === "long_stay" && <span className="ml-2 rounded-full bg-gold-light px-2 py-0.5 align-middle text-xs font-bold text-gold-text">Long stay</span>}</p>
-                    <p className="text-sm text-muted-foreground">{formatValidity(c, now)}</p>
-                    <div className="mt-3 flex gap-2">
-                      {status === "Active" ? (
-                        <>
-                          <button
-                            aria-label="Share"
-                            onClick={() =>
-                              shareAccessCode({
-                                code: c.code,
-                                validTo: c.valid_to,
-                                houseNumber: profile.house_number,
-                                hostName: profile.full_name,
-                                unitLabel,
-                                type: c.type,
-                                validFrom: c.valid_from,
-                              })
-                            }
-                            className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep"
-                          >
-                            <Share2 className="size-5" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setExtendTarget(c);
-                              setExtendOption("Tomorrow");
-                              setExtendPicked("");
-                              setExtendError("");
-                              setExtending(false);
-                            }}
-                            className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold"
-                          >
-                            Extend
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCancelTarget(c);
-                              setCancelError("");
-                              setCancelling(false);
-                            }}
-                            className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold text-destructive"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <Link
-                          to="/create-code"
-                          state={{ holderName: c.holder_name }}
-                          className="flex min-h-11 flex-1 items-center justify-center rounded-sm border border-border text-sm font-semibold text-deep"
-                        >
-                          Create again
-                        </Link>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
         </section>
       </Sheet>
       <BottomSheet open={how} onClose={() => setHow(false)} title="Add to Home Screen">
