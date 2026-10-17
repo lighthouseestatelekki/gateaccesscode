@@ -1,15 +1,46 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button, Hero, Keypad, PinBoxes, Screen, Sheet, usePin, Wordmark } from "@/components/lh/ui";
+import { isWeakPin } from "@/lib/pin";
+import { supabase } from "@/lib/supabase";
+import { useResident } from "@/lib/useResident";
 
 export const title = "Choose your new PIN";
 
 function ChangePin() {
   const nav = useNavigate();
+  const profile = useResident();
   const [step, setStep] = useState<0 | 1>(0);
   const first = usePin(() => setStep(1));
   const second = usePin();
   const cur = step === 0 ? first : second;
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const weak = first.value.length === 6 && isWeakPin(first.value);
+  const mismatch = first.value.length === 6 && second.value.length === 6 && first.value !== second.value;
+  const message = error || (weak ? "That PIN is too easy to guess. Please choose another." : mismatch ? "PINs do not match." : "");
+
+  async function save() {
+    setBusy(true);
+    setError("");
+    const { error: pwErr } = await supabase.auth.updateUser({ password: first.value });
+    if (pwErr) {
+      setError(/different from the old/i.test(pwErr.message) ? "Please choose a PIN different from the temporary one." : pwErr.message);
+      setBusy(false);
+      return;
+    }
+    const { error: flagErr } = await supabase.rpc("clear_must_change_pin");
+    if (flagErr) {
+      setError(flagErr.message);
+      setBusy(false);
+      return;
+    }
+    nav("/home", { replace: true });
+  }
+
+  if (!profile) return null;
+
   return (
     <Screen>
       <Hero>
@@ -23,8 +54,11 @@ function ChangePin() {
           ))}
         </div>
         <PinBoxes value={cur.value} />
-        <Keypad onDigit={cur.onDigit} onBack={cur.onBack} />
-        <Button disabled={second.value.length < 6} onClick={() => nav("/home")}>Save PIN</Button>
+        {message && <p role="alert" className="text-center text-sm font-medium text-destructive">{message}</p>}
+        <Keypad onDigit={(d) => { setError(""); cur.onDigit(d); }} onBack={() => { setError(""); cur.onBack(); }} />
+        <Button disabled={busy || first.value.length !== 6 || second.value.length !== 6 || weak || mismatch} onClick={save}>
+          {busy ? "Saving…" : "Save PIN"}
+        </Button>
       </Sheet>
     </Screen>
   );

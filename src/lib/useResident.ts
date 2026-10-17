@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 
 export type ResidentProfile = {
@@ -13,6 +13,7 @@ export type ResidentProfile = {
 
 export function useResident(): ResidentProfile | null {
   const nav = useNavigate();
+  const { pathname } = useLocation();
   const [profile, setProfile] = useState<ResidentProfile | null>(null);
 
   useEffect(() => {
@@ -40,13 +41,19 @@ export function useResident(): ResidentProfile | null {
         return;
       }
 
+      // A resident with a temporary PIN must choose their own before using the app.
+      if (data.must_change_pin && pathname !== "/change-pin") {
+        nav("/change-pin", { replace: true });
+        return;
+      }
+
       setProfile(data as ResidentProfile);
     }
     load();
     return () => {
       active = false;
     };
-  }, [nav]);
+  }, [nav, pathname]);
 
   return profile;
 }

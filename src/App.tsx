@@ -46,7 +46,7 @@ export default function App() {
         <Route path="/home" element={<Page title={Home.title}><Home.default /></Page>} />
         <Route path="/login" element={<Page title={Login.title}><Login.default /></Page>} />
         <Route path="/manager/approvals" element={<Page title={ManagerApprovals.title}><ManagerApprovals.default /></Page>} />
-        <Route path="/manager/approvals/1" element={<Page title={ManagerApprovalDetail.title}><ManagerApprovalDetail.default /></Page>} />
+        <Route path="/manager/approvals/:id" element={<Page title={ManagerApprovalDetail.title}><ManagerApprovalDetail.default /></Page>} />
         <Route path="/manager/guards" element={<Page title={ManagerGuards.title}><ManagerGuards.default /></Page>} />
         <Route path="/manager/login" element={<Page title={ManagerLogin.title}><ManagerLogin.default /></Page>} />
         <Route path="/manager/residents" element={<Page title={ManagerResidents.title}><ManagerResidents.default /></Page>} />
