@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { Bell, KeyRound, LogOut, Plus, Share2, ShieldAlert, Users, X } from "lucide-react";
+import { BarChart3, Bell, KeyRound, LogOut, Plus, Share2, ShieldAlert, Users, X } from "lucide-react";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { AlertsCard } from "@/components/lh/AlertsCard";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
@@ -177,9 +177,10 @@ function Home() {
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
-        <div className="-mt-3 grid grid-cols-2 gap-2">
+        <div className="-mt-3 grid grid-cols-3 gap-2">
           <Link to="/codes" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><KeyRound className="size-4" /> My codes</Link>
           <Link to="/staff" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><Users className="size-4" /> My staff</Link>
+          <Link to="/insights" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><BarChart3 className="size-4" /> Insights</Link>
         </div>
 
         <AlertsCard userId={me?.id} />

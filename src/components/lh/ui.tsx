@@ -202,13 +202,14 @@ export function ManagerTabs() {
     { to: "/manager/residents", label: "Residents" },
     { to: "/manager/guards", label: "Guards" },
     { to: "/manager/gate-log", label: "Gate log" },
+    { to: "/manager/insights", label: "Insights" },
   ] as const;
   return (
-    <nav className="sticky bottom-0 mt-auto grid grid-cols-4 border-t border-border bg-card/95 backdrop-blur safe-bottom pt-1">
+    <nav className="sticky bottom-0 mt-auto grid grid-cols-5 border-t border-border bg-card/95 backdrop-blur safe-bottom pt-1">
       {tabs.map((t) => {
         const on = path.startsWith(t.to);
         return (
-          <Link key={t.to} to={t.to} className={cn("flex min-h-14 flex-col items-center justify-center text-sm font-semibold", on ? "text-deep" : "text-muted-foreground")}>
+          <Link key={t.to} to={t.to} className={cn("flex min-h-14 flex-col items-center justify-center text-[13px] font-semibold", on ? "text-deep" : "text-muted-foreground")}>
             <span className={cn("mb-1 h-1 w-8 rounded-full", on ? "bg-primary" : "bg-transparent")} />
             {t.label}
           </Link>

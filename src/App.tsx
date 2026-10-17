@@ -12,6 +12,8 @@ import * as Hadith from "@/pages/hadith";
 import * as Inbox from "@/pages/inbox";
 import * as Codes from "@/pages/codes";
 import * as Staff from "@/pages/staff";
+import * as Insights from "@/pages/insights";
+import * as ManagerInsights from "@/pages/manager-insights";
 import * as ManagerHouse from "@/pages/manager-house";
 import * as Sos from "@/pages/sos";
 import * as ManagerAnnounce from "@/pages/manager-announce";
@@ -51,6 +53,8 @@ export default function App() {
         <Route path="/guard/verdict/expired" element={<Page title={GuardVerdictExpired.title}><GuardVerdictExpired.default /></Page>} />
         <Route path="/guard/verify" element={<Page title={GuardVerify.title}><GuardVerify.default /></Page>} />
         <Route path="/hadith" element={<Page title={Hadith.title}><Hadith.default /></Page>} />
+        <Route path="/insights" element={<Page title={Insights.title}><Insights.default /></Page>} />
+        <Route path="/manager/insights" element={<Page title={ManagerInsights.title}><ManagerInsights.default /></Page>} />
         <Route path="/staff" element={<Page title={Staff.title}><Staff.default /></Page>} />
         <Route path="/manager/house/:id" element={<Page title={ManagerHouse.title}><ManagerHouse.default /></Page>} />
         <Route path="/codes" element={<Page title={Codes.title}><Codes.default /></Page>} />
