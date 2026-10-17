@@ -55,12 +55,12 @@ export function Field({ label, tone = "light", ...p }: { label: string; tone?: "
   );
 }
 
-export function SelectField({ label, options }: { label: string; options: readonly string[] }) {
+export function SelectField({ label, options, ...p }: { label: string; options: readonly string[] } & React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-text-2">{label}</span>
       <div className="relative">
-        <select className="h-13 min-h-12 w-full appearance-none rounded-2xl border-[1.5px] border-border bg-card px-4 text-base text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
+        <select {...p} className="h-13 min-h-12 w-full appearance-none rounded-2xl border-[1.5px] border-border bg-card px-4 text-base text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
           {options.map((o) => <option key={o}>{o}</option>)}
         </select>
         <ChevronDown className="pointer-events-none absolute right-3 top-3.5 size-5 text-muted-foreground" />
