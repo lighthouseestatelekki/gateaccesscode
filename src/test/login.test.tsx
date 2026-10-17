@@ -10,6 +10,12 @@ const { mockSignInWithPassword, mockSignOut, mockGetSession, mockSingle } = vi.h
   mockSingle: vi.fn(),
 }));
 
+vi.mock("@/lib/staffAdmin", () => ({
+  pinSignIn: (...args: unknown[]) => mockSignInWithPassword(...args),
+  pinAuth: vi.fn(),
+  staffAdmin: vi.fn(),
+}));
+
 vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: {

@@ -1,21 +1,14 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Register from "@/pages/register";
 
-vi.mock("@/lib/supabase", () => ({
-  supabase: {
-    auth: {
-      signUp: vi.fn().mockResolvedValue({ data: { user: { id: "user-123" } }, error: null }),
-      signOut: vi.fn().mockResolvedValue({ error: null }),
-    },
-    from: vi.fn(() => ({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    })),
-  },
-}));
+const { mockPinAuth } = vi.hoisted(() => ({ mockPinAuth: vi.fn() }));
+vi.mock("@/lib/staffAdmin", () => ({ pinAuth: mockPinAuth, staffAdmin: mockPinAuth, pinSignIn: vi.fn() }));
+vi.mock("@/lib/supabase", () => ({ supabase: {} }));
 
 afterEach(cleanup);
+beforeEach(() => mockPinAuth.mockReset().mockResolvedValue({ ok: true }));
 
 function open() {
   render(
@@ -100,5 +93,25 @@ describe("Registration rules", () => {
     enterPin("Confirm your PIN", "123456");
     expect(submit()).toBeDisabled();
     expect(screen.getByRole("alert")).toHaveTextContent("That PIN is too easy to guess. Please choose another.");
+  });
+});
+
+describe("Registration request", () => {
+  it("sends the details to the server with the unit code and cleaned house number", async () => {
+    open();
+    fireEvent.change(screen.getByLabelText("Full name"), { target: { value: " Aisha Bello " } });
+    fireEvent.change(screen.getAllByLabelText("Phone")[0]!, { target: { value: "08031234567" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "a@b.com" } });
+    fireEvent.change(screen.getByLabelText("House number"), { target: { value: "014" } });
+    next();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Kin" } });
+    fireEvent.change(screen.getAllByLabelText("Phone")[1]!, { target: { value: "0801" } });
+    fireEvent.change(screen.getByLabelText("Relationship"), { target: { value: "Brother" } });
+    next();
+    enterPin("Enter 6 digits", "482915");
+    enterPin("Confirm your PIN", "482915");
+    fireEvent.click(submit());
+    expect(await screen.findByText("PENDING PAGE")).toBeInTheDocument();
+    expect(mockPinAuth).toHaveBeenCalledWith(expect.objectContaining({ action: "register", full_name: "Aisha Bello", house_number: "14", house_unit: "main", pin: "482915" }));
   });
 });

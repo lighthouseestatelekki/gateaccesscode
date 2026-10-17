@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { HadithLine, Hero, Keypad, PinBoxes, Screen, Sheet, UnitPicker, usePin, Button } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
+import { pinSignIn } from "@/lib/staffAdmin";
 import { unitToCode } from "@/lib/units";
 import { UNITS } from "@/mock/data";
 
@@ -89,12 +90,8 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
 
     const cleanedHouse = String(Number(house.number.trim()));
     const unitCode = unitToCode(house.unit);
-    const email = `house${cleanedHouse}-${unitCode}@residents.lighthouseestate.app`;
 
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password: thePin,
-    });
+    const { data: signInData, error: signInError } = await pinSignIn({ kind: "resident", house_number: cleanedHouse, house_unit: unitCode, pin: thePin });
 
     if (signInError) {
       if (/invalid login credentials/i.test(signInError.message)) {

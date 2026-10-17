@@ -201,9 +201,10 @@ export function ManagerTabs() {
     { to: "/manager/approvals", label: "Approvals" },
     { to: "/manager/residents", label: "Residents" },
     { to: "/manager/guards", label: "Guards" },
+    { to: "/manager/gate-log", label: "Gate log" },
   ] as const;
   return (
-    <nav className="sticky bottom-0 mt-auto grid grid-cols-3 border-t border-border bg-card/95 backdrop-blur safe-bottom pt-1">
+    <nav className="sticky bottom-0 mt-auto grid grid-cols-4 border-t border-border bg-card/95 backdrop-blur safe-bottom pt-1">
       {tabs.map((t) => {
         const on = path.startsWith(t.to);
         return (

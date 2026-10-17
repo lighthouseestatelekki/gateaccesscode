@@ -4,6 +4,7 @@ import { LogOut, Plus, Share2, X } from "lucide-react";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
 import { computeExpiry, formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
+import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
@@ -31,7 +32,7 @@ function getCodeStatus(c: AccessCodeRow, now: Date): "Active" | "Used" | "Expire
 function Home() {
   const nav = useNavigate();
   const profile = useResident();
-  const [banner, setBanner] = useState(true);
+  const [banner, setBanner] = useState(() => !isInstalled());
   const [how, setHow] = useState(false);
   const [h, setH] = useState(hadith[0]!);
   const [codes, setCodes] = useState<AccessCodeRow[]>([]);
@@ -157,7 +158,7 @@ function Home() {
         {banner && (
           <div className="flex items-center gap-3 rounded-lg bg-mint-lightest p-3 pl-4">
             <p className="flex-1 text-sm text-text-2">Add Lighthouse Lekki to your Home Screen for quick access</p>
-            <button onClick={() => setHow(true)} className="min-h-11 rounded-sm bg-card px-4 text-sm font-semibold text-deep">How</button>
+            <button onClick={async () => { if (!(await promptInstall())) setHow(true); }} className="min-h-11 rounded-sm bg-card px-4 text-sm font-semibold text-deep">How</button>
             <button onClick={() => setBanner(false)} aria-label="Dismiss" className="flex size-11 items-center justify-center text-muted-foreground"><X className="size-4" /></button>
           </div>
         )}

@@ -1,8 +1,11 @@
 import { supabase } from "@/lib/supabase";
 
-/** Calls the "staff-admin" Edge Function and returns its JSON, or throws an Error with the server's message. */
-export async function staffAdmin<T = Record<string, unknown>>(body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke("staff-admin", { body });
+/**
+ * Calls the "pin-auth" Edge Function (all PIN actions and Estate Manager admin actions live there)
+ * and returns its JSON, or throws an Error carrying the server's own message.
+ */
+export async function pinAuth<T = Record<string, unknown>>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke("pin-auth", { body });
   if (error) {
     let message = error.message;
     const ctx = (error as { context?: Response }).context;
@@ -18,4 +21,24 @@ export async function staffAdmin<T = Record<string, unknown>>(body: Record<strin
   }
   if (data && typeof data === "object" && "error" in data) throw new Error(String((data as { error: unknown }).error));
   return data as T;
+}
+
+/** Estate Manager actions (create_guard, reset_pin). */
+export const staffAdmin = pinAuth;
+
+type SignInResult = { data: { user: { id: string } | null }; error: { message: string } | null };
+
+/**
+ * PIN sign-in through the server (which enforces the wrong-PIN lock), then stores the session locally.
+ * Returns the same shape as supabase.auth.signInWithPassword so screens handle it the same way.
+ */
+export async function pinSignIn(params: { kind: "resident"; house_number: string; house_unit: string; pin: string } | { kind: "guard"; guard_number: string; pin: string }): Promise<SignInResult> {
+  try {
+    const r = await pinAuth<{ access_token: string; refresh_token: string }>({ action: "login", ...params });
+    const { data, error } = await supabase.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
+    if (error || !data.user) return { data: { user: null }, error: { message: error?.message ?? "Could not sign in." } };
+    return { data: { user: { id: data.user.id } }, error: null };
+  } catch (e) {
+    return { data: { user: null }, error: { message: (e as Error).message } };
+  }
 }

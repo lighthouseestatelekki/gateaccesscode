@@ -13,6 +13,12 @@ const { mockSignInWithPassword, mockSignOut, mockGetSession, mockSingle, mockRpc
   mockRpc: vi.fn(),
 }));
 
+vi.mock("@/lib/staffAdmin", () => ({
+  pinSignIn: (...args: unknown[]) => mockSignInWithPassword(...args),
+  pinAuth: vi.fn(),
+  staffAdmin: vi.fn(),
+}));
+
 vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: {
@@ -68,10 +74,7 @@ describe("Guard login and verification", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Guard number or PIN is incorrect.");
-    expect(mockSignInWithPassword).toHaveBeenCalledWith({
-      email: "guard7@guards.lighthouseestate.app",
-      password: "123456",
-    });
+    expect(mockSignInWithPassword).toHaveBeenCalledWith({ kind: "guard", guard_number: "7", pin: "123456" });
   });
 
   it("verify with result 'access' navigates to /guard/verdict/access with the state", async () => {

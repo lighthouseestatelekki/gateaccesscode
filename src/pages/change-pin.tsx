@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button, Hero, Keypad, PinBoxes, Screen, Sheet, usePin, Wordmark } from "@/components/lh/ui";
 import { isWeakPin } from "@/lib/pin";
-import { supabase } from "@/lib/supabase";
+import { pinAuth } from "@/lib/staffAdmin";
 import { useResident } from "@/lib/useResident";
 
 export const title = "Choose your new PIN";
@@ -24,15 +24,10 @@ function ChangePin() {
   async function save() {
     setBusy(true);
     setError("");
-    const { error: pwErr } = await supabase.auth.updateUser({ password: first.value });
-    if (pwErr) {
-      setError(/different from the old/i.test(pwErr.message) ? "Please choose a PIN different from the temporary one." : pwErr.message);
-      setBusy(false);
-      return;
-    }
-    const { error: flagErr } = await supabase.rpc("clear_must_change_pin");
-    if (flagErr) {
-      setError(flagErr.message);
+    try {
+      await pinAuth({ action: "change_pin", pin: first.value });
+    } catch (e) {
+      setError((e as Error).message);
       setBusy(false);
       return;
     }

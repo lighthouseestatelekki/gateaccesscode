@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Field, Keypad, PinBoxes, usePin, Wordmark } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
+import { pinSignIn } from "@/lib/staffAdmin";
 
 export const title = "Guard sign in";
 
@@ -48,11 +49,7 @@ function GuardLogin() {
     setError("");
     setSigningIn(true);
 
-    const email = `guard${cleanedNumber}@guards.lighthouseestate.app`;
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password: pin.value,
-    });
+    const { data: signInData, error: signInError } = await pinSignIn({ kind: "guard", guard_number: cleanedNumber, pin: pin.value });
 
     if (signInError) {
       if (/invalid login credentials/i.test(signInError.message)) {
@@ -60,6 +57,7 @@ function GuardLogin() {
         pin.reset();
       } else {
         setError(signInError.message);
+        pin.reset();
       }
       setSigningIn(false);
       return;

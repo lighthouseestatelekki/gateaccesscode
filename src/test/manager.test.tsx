@@ -30,6 +30,9 @@ const h = vi.hoisted(() => {
   };
 });
 
+const { mockPinAuth } = vi.hoisted(() => ({ mockPinAuth: vi.fn() }));
+vi.mock("@/lib/staffAdmin", () => ({ pinAuth: mockPinAuth, staffAdmin: mockPinAuth, pinSignIn: vi.fn() }));
+
 vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: { getSession: h.getSession, signOut: h.signOut, updateUser: h.updateUser },
@@ -92,8 +95,7 @@ describe("Estate Manager approval", () => {
 describe("Change PIN", () => {
   it("saves a new PIN, clears the flag and goes home", async () => {
     h.results.push({ data: { role: "resident", status: "active", must_change_pin: true, full_name: "T R", house_number: "99", house_unit: "boys" }, error: null });
-    h.updateUser.mockResolvedValue({ error: null });
-    h.rpc.mockResolvedValue({ error: null });
+    mockPinAuth.mockResolvedValue({ ok: true });
     render(
       <MemoryRouter initialEntries={["/change-pin"]}>
         <Routes>
@@ -108,8 +110,7 @@ describe("Change PIN", () => {
     for (const d of "482915") fireEvent.click(screen.getByRole("button", { name: d }));
     fireEvent.click(screen.getByRole("button", { name: "Save PIN" }));
     expect(await screen.findByText("HOME")).toBeInTheDocument();
-    expect(h.updateUser).toHaveBeenCalledWith({ password: "482915" });
-    expect(h.rpc).toHaveBeenCalledWith("clear_must_change_pin");
+    expect(mockPinAuth).toHaveBeenCalledWith({ action: "change_pin", pin: "482915" });
   });
 
   it("refuses an easy PIN", async () => {

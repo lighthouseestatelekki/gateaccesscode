@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Button, Field, Hero, Keypad, PinBoxes, Screen, SelectField, Sheet, usePin } from "@/components/lh/ui";
 import { isWeakPin } from "@/lib/pin";
-import { supabase } from "@/lib/supabase";
+import { pinAuth } from "@/lib/staffAdmin";
 import { unitToCode } from "@/lib/units";
 import { UNITS } from "@/mock/data";
 
@@ -76,45 +76,25 @@ function Register() {
 
     const cleanedHouse = String(Number(houseNumber.trim()));
     const unitCode = unitToCode(unit);
-    const loginEmail = `house${cleanedHouse}-${unitCode}@residents.lighthouseestate.app`;
-
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: loginEmail,
-      password: pin.value,
-    });
-
-    if (signUpError) {
-      if (signUpError.code === "user_already_exists" || /already registered/i.test(signUpError.message)) {
-        setError("This house and unit is already registered. If this is you, log in. If not, please contact the Estate Manager.");
-      } else {
-        setError(signUpError.message);
-      }
+    try {
+      await pinAuth({
+        action: "register",
+        full_name: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        house_number: cleanedHouse,
+        house_unit: unitCode,
+        nok_name: nokName.trim(),
+        nok_phone: nokPhone.trim(),
+        nok_relationship: nokRelationship.trim(),
+        pin: pin.value,
+      });
+    } catch (e) {
+      setError((e as Error).message);
       setSubmitting(false);
       return;
     }
 
-    const { error: insertError } = await supabase.from("profiles").insert({
-      id: signUpData.user!.id,
-      role: "resident",
-      status: "pending",
-      full_name: fullName.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
-      house_number: cleanedHouse,
-      house_unit: unitCode,
-      nok_name: nokName.trim(),
-      nok_phone: nokPhone.trim(),
-      nok_relationship: nokRelationship.trim(),
-    });
-
-    if (insertError) {
-      setError(`${insertError.message} Please contact the Estate Manager.`);
-      await supabase.auth.signOut();
-      setSubmitting(false);
-      return;
-    }
-
-    await supabase.auth.signOut();
     nav("/pending");
   }
 
