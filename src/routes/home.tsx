@@ -43,7 +43,7 @@ function Home() {
           <p className="text-xs font-bold uppercase tracking-widest text-gold-text">Daily hadith</p>
           <p className="mt-2 font-display text-lg leading-snug text-foreground">“{h.text}”</p>
           <div className="mt-3 flex items-end justify-between gap-3">
-            <p className="text-xs text-text-2">{HADITH_ATTRIBUTION}</p>
+            <p className="text-xs leading-7 text-text-2">{HADITH_ATTRIBUTION}</p>
             <Link to="/hadith" className="shrink-0 py-2 text-sm font-semibold text-gold-text">More hadith</Link>
           </div>
         </section>

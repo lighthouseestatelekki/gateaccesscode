@@ -33,7 +33,7 @@ function HadithPage() {
               <li key={h.id} className="rounded-lg border border-border bg-card p-5">
                 <p className="font-display text-lg leading-snug">“{h.text}”</p>
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <p className="text-xs text-muted-foreground">{HADITH_ATTRIBUTION}</p>
+                  <p className="text-xs leading-7 text-muted-foreground">{HADITH_ATTRIBUTION}</p>
                   <button aria-label="Share" className="flex size-11 shrink-0 items-center justify-center rounded-full text-text-2 hover:bg-muted"><Share2 className="size-4" /></button>
                 </div>
               </li>
