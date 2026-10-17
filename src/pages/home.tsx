@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { LogOut, Plus, Share2, X } from "lucide-react";
-import { BottomSheet, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
-import { formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
+import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
+import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
+import { computeExpiry, formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
@@ -20,9 +21,10 @@ type AccessCodeRow = {
   created_at: string;
 };
 
-function getCodeStatus(c: AccessCodeRow, now: Date): "Active" | "Used" | "Expired" {
+function getCodeStatus(c: AccessCodeRow, now: Date): "Active" | "Used" | "Expired" | "Cancelled" {
   if (c.used_at) return "Used";
-  if (c.active && new Date(c.valid_to).getTime() > now.getTime()) return "Active";
+  if (!c.active) return "Cancelled";
+  if (new Date(c.valid_to).getTime() > now.getTime()) return "Active";
   return "Expired";
 }
 
@@ -34,23 +36,31 @@ function Home() {
   const [h, setH] = useState(hadith[0]!);
   const [codes, setCodes] = useState<AccessCodeRow[]>([]);
 
+  const [cancelTarget, setCancelTarget] = useState<AccessCodeRow | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+
+  const [extendTarget, setExtendTarget] = useState<AccessCodeRow | null>(null);
+  const [extendOption, setExtendOption] = useState("Tomorrow");
+  const [extendPicked, setExtendPicked] = useState("");
+  const [extending, setExtending] = useState(false);
+  const [extendError, setExtendError] = useState("");
+
   useEffect(() => setH(dailyHadith()!), []);
 
-  useEffect(() => {
-    if (!profile) return;
-    let active = true;
-    supabase
+  const loadCodes = useCallback(async () => {
+    const { data } = await supabase
       .from("access_codes")
       .select("id,code,holder_name,valid_to,active,used_at,created_at")
       .order("created_at", { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
-        if (active && data) setCodes(data as AccessCodeRow[]);
-      });
-    return () => {
-      active = false;
-    };
-  }, [profile]);
+      .limit(20);
+    if (data) setCodes(data as AccessCodeRow[]);
+  }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+    loadCodes();
+  }, [profile, loadCodes]);
 
   if (!profile) return null;
 
@@ -67,6 +77,57 @@ function Home() {
   }
 
   const now = new Date();
+
+  async function handleCancel() {
+    if (!cancelTarget) return;
+    setCancelError("");
+    setCancelling(true);
+
+    const { error } = await supabase.rpc("cancel_my_code", { p_code_id: cancelTarget.id });
+    if (error) {
+      setCancelError(error.message);
+      setCancelling(false);
+      return;
+    }
+
+    setCancelling(false);
+    setCancelTarget(null);
+    await loadCodes();
+  }
+
+  async function handleExtend() {
+    if (!extendTarget) return;
+    const currentNow = new Date();
+    const expiry = computeExpiry(extendOption, currentNow, extendPicked);
+    const currentValidTo = new Date(extendTarget.valid_to);
+
+    if (
+      Number.isNaN(expiry.getTime()) ||
+      expiry.getTime() <= currentNow.getTime() ||
+      expiry.getTime() <= currentValidTo.getTime()
+    ) {
+      setExtendError("Please choose a later time.");
+      return;
+    }
+
+    setExtendError("");
+    setExtending(true);
+
+    const { error } = await supabase.rpc("extend_my_code", {
+      p_code_id: extendTarget.id,
+      p_valid_to: expiry.toISOString(),
+    });
+
+    if (error) {
+      setExtendError(error.message);
+      setExtending(false);
+      return;
+    }
+
+    setExtending(false);
+    setExtendTarget(null);
+    await loadCodes();
+  }
 
   return (
     <Screen>
@@ -161,8 +222,28 @@ function Home() {
                           >
                             <Share2 className="size-5" />
                           </button>
-                          <button className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold">Extend</button>
-                          <button className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold text-destructive">Cancel</button>
+                          <button
+                            onClick={() => {
+                              setExtendTarget(c);
+                              setExtendOption("Tomorrow");
+                              setExtendPicked("");
+                              setExtendError("");
+                              setExtending(false);
+                            }}
+                            className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold"
+                          >
+                            Extend
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCancelTarget(c);
+                              setCancelError("");
+                              setCancelling(false);
+                            }}
+                            className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold text-destructive"
+                          >
+                            Cancel
+                          </button>
                         </>
                       ) : (
                         <Link
@@ -185,6 +266,57 @@ function Home() {
         <div className="space-y-3 pb-4 text-base text-text-2">
           <p>iPhone: tap the Share icon, then Add to Home Screen.</p>
           <p>Android: tap the menu (three dots), then Add to Home screen.</p>
+        </div>
+      </BottomSheet>
+      <BottomSheet
+        open={Boolean(cancelTarget)}
+        onClose={() => {
+          if (!cancelling) {
+            setCancelTarget(null);
+            setCancelError("");
+          }
+        }}
+        title="Cancel this code?"
+      >
+        <div className="space-y-3 pb-4">
+          <p className="text-base text-text-2">Your visitor will not be able to use this code.</p>
+          {cancelError && <p role="alert" className="text-sm font-medium text-destructive">{cancelError}</p>}
+          <Button variant="danger" disabled={cancelling} onClick={handleCancel}>
+            {cancelling ? "Cancelling…" : "Yes, cancel code"}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={cancelling}
+            onClick={() => {
+              setCancelTarget(null);
+              setCancelError("");
+            }}
+          >
+            Keep code
+          </Button>
+        </div>
+      </BottomSheet>
+      <BottomSheet
+        open={Boolean(extendTarget)}
+        onClose={() => {
+          if (!extending) {
+            setExtendTarget(null);
+            setExtendError("");
+          }
+        }}
+        title="Extend code"
+      >
+        <div className="space-y-4 pb-4">
+          <ExpiryOptions
+            value={extendOption}
+            onChange={setExtendOption}
+            picked={extendPicked}
+            onPickedChange={setExtendPicked}
+          />
+          {extendError && <p role="alert" className="text-sm font-medium text-destructive">{extendError}</p>}
+          <Button disabled={extending} onClick={handleExtend}>
+            {extending ? "Extending…" : "Extend code"}
+          </Button>
         </div>
       </BottomSheet>
     </Screen>

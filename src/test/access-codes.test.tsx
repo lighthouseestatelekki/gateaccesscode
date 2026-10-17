@@ -1,15 +1,17 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { computeExpiry, formatUntil } from "@/lib/expiry";
 import CreateCode from "@/pages/create-code";
 import CodeCreated from "@/pages/code-created";
+import Home from "@/pages/home";
 
-const { mockRpc, mockGetSession, mockSingle, mockSignOut } = vi.hoisted(() => ({
+const { mockRpc, mockGetSession, mockSingle, mockSignOut, mockLimit } = vi.hoisted(() => ({
   mockRpc: vi.fn(),
   mockGetSession: vi.fn(),
   mockSingle: vi.fn(),
   mockSignOut: vi.fn(),
+  mockLimit: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase", () => ({
@@ -18,13 +20,24 @@ vi.mock("@/lib/supabase", () => ({
       getSession: mockGetSession,
       signOut: mockSignOut,
     },
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: mockSingle,
+    from: vi.fn((table: string) => {
+      if (table === "access_codes") {
+        return {
+          select: vi.fn(() => ({
+            order: vi.fn(() => ({
+              limit: mockLimit,
+            })),
+          })),
+        };
+      }
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: mockSingle,
+          })),
         })),
-      })),
-    })),
+      };
+    }),
     rpc: mockRpc,
   },
 }));
@@ -46,6 +59,7 @@ beforeEach(() => {
     },
     error: null,
   });
+  mockLimit.mockResolvedValue({ data: [], error: null });
   mockSignOut.mockResolvedValue({ error: null });
 });
 
@@ -149,5 +163,103 @@ describe("Create access code page", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Please enter the visitor's name.");
     expect(mockRpc).not.toHaveBeenCalled();
+  });
+});
+
+function openHome() {
+  render(
+    <MemoryRouter initialEntries={["/home"]}>
+      <Routes>
+        <Route path="/home" element={<Home />} />
+        <Route path="/create-code" element={<CreateCode />} />
+        <Route path="/login" element={<p>LOGIN PAGE</p>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
+describe("Home access codes — Cancel, Extend, and Cancelled status", () => {
+  it("Cancel calls rpc('cancel_my_code') with the code id", async () => {
+    mockLimit.mockResolvedValue({
+      data: [
+        {
+          id: "code-abc",
+          code: "184302",
+          holder_name: "Ibrahim Yusuf",
+          valid_to: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          active: true,
+          used_at: null,
+          created_at: new Date().toISOString(),
+        },
+      ],
+      error: null,
+    });
+    mockRpc.mockResolvedValue({ data: null, error: null });
+
+    openHome();
+
+    expect(await screen.findByText("184 302")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByText("Cancel this code?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Yes, cancel code" }));
+
+    await waitFor(() => {
+      expect(mockRpc).toHaveBeenCalledWith("cancel_my_code", { p_code_id: "code-abc" });
+    });
+  });
+
+  it("Extend with 'Tomorrow' calls rpc('extend_my_code') with the id and an ISO date", async () => {
+    mockLimit.mockResolvedValue({
+      data: [
+        {
+          id: "code-xyz",
+          code: "184302",
+          holder_name: "Ibrahim Yusuf",
+          valid_to: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+          active: true,
+          used_at: null,
+          created_at: new Date().toISOString(),
+        },
+      ],
+      error: null,
+    });
+    mockRpc.mockResolvedValue({ data: null, error: null });
+
+    openHome();
+
+    expect(await screen.findByText("184 302")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Extend" }));
+    fireEvent.click(screen.getByRole("button", { name: "Extend code" }));
+
+    await waitFor(() => {
+      expect(mockRpc).toHaveBeenCalledTimes(1);
+    });
+    const [fnName, args] = mockRpc.mock.calls[0]!;
+    expect(fnName).toBe("extend_my_code");
+    expect(args.p_code_id).toBe("code-xyz");
+    expect(args.p_valid_to).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+  });
+
+  it("a cancelled code shows 'Cancelled'", async () => {
+    mockLimit.mockResolvedValue({
+      data: [
+        {
+          id: "code-cancelled",
+          code: "529117",
+          holder_name: "Fatima Ade",
+          valid_to: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          active: false,
+          used_at: null,
+          created_at: new Date().toISOString(),
+        },
+      ],
+      error: null,
+    });
+
+    openHome();
+
+    expect(await screen.findByText("529 117")).toBeInTheDocument();
+    expect(screen.getByText("Cancelled")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create again" })).toBeInTheDocument();
   });
 });

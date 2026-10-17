@@ -190,8 +190,8 @@ export function BottomSheet({ open, onClose, title, children }: { open: boolean;
   );
 }
 
-export function StatusChip({ status }: { status: "Active" | "Used" | "Expired" }) {
-  const c = { Active: "bg-mint-light text-deep", Used: "bg-muted text-text-2", Expired: "bg-gold-light text-gold-text" }[status];
+export function StatusChip({ status }: { status: "Active" | "Used" | "Expired" | "Cancelled" }) {
+  const c = { Active: "bg-mint-light text-deep", Used: "bg-muted text-text-2", Cancelled: "bg-muted text-text-2", Expired: "bg-gold-light text-gold-text" }[status];
   return <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", c)}>{status}</span>;
 }
 

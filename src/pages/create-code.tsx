@@ -1,15 +1,13 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { Button, Field, Hero, Screen, Sheet } from "@/components/lh/ui";
 import { computeExpiry } from "@/lib/expiry";
 import { supabase } from "@/lib/supabase";
 import { useResident } from "@/lib/useResident";
-import { cn } from "@/lib/utils";
 
 export const title = "Create access code";
-
-const OPTIONS = ["Next 2 hours", "Today", "Tomorrow", "This weekend", "Pick date and time"];
 
 function CreateCode() {
   const nav = useNavigate();
@@ -71,25 +69,7 @@ function CreateCode() {
       </Hero>
       <Sheet className="space-y-6">
         <Field label="Visitor name" placeholder="e.g. Ibrahim Yusuf" value={name} onChange={(e) => setName(e.target.value)} />
-        <div>
-          <p className="mb-2 text-sm font-medium text-text-2">Valid until</p>
-          <div className="space-y-2">
-            {OPTIONS.map((o) => (
-              <button key={o} onClick={() => setSel(o)} className={cn("flex min-h-14 w-full items-center justify-between rounded-lg border-2 px-5 text-left text-base font-semibold transition-colors", sel === o ? "border-primary bg-mint-lightest text-deep" : "border-border bg-card text-foreground")}>
-                {o}
-                <span className={cn("flex size-6 items-center justify-center rounded-full border-2", sel === o ? "border-primary bg-primary text-primary-foreground" : "border-border")}>{sel === o && <Check className="size-4" />}</span>
-              </button>
-            ))}
-          </div>
-          {sel === "Pick date and time" && (
-            <input
-              type="datetime-local"
-              value={picked}
-              onChange={(e) => setPicked(e.target.value)}
-              className="mt-3 h-12 w-full rounded-sm border border-border bg-card px-4"
-            />
-          )}
-        </div>
+        <ExpiryOptions value={sel} onChange={setSel} picked={picked} onPickedChange={setPicked} />
         {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
         <Button disabled={creating} onClick={handleCreate}>{creating ? "Creating…" : "Create code"}</Button>
       </Sheet>
