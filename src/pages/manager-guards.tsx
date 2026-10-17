@@ -21,6 +21,16 @@ function Guards() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
+  const [suggested, setSuggested] = useState("");
+
+  function suggestPin() {
+    let p = "";
+    do p = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 1_000_000).padStart(6, "0");
+    while (isWeakPin(p));
+    pin.reset();
+    for (const d of p) pin.onDigit(d);
+    setSuggested(p);
+  }
 
   const load = useCallback(async () => {
     const { data, error: err } = await supabase.from("profiles").select("id,full_name,guard_number,assigned_gate,status").eq("role", "guard");
@@ -37,8 +47,11 @@ function Guards() {
   function openSheet() {
     setName("");
     setPhone("");
-    setNum("");
+    // Suggest the next guard number after the highest one in use.
+    const highest = Math.max(0, ...(list ?? []).map((g) => Number(g.guard_number) || 0));
+    setNum(String(highest + 1));
     pin.reset();
+    setSuggested("");
     setError("");
     setOpen(true);
   }
@@ -89,17 +102,28 @@ function Guards() {
       <ManagerTabs />
       <BottomSheet open={open} onClose={() => !busy && setOpen(false)} title="Add guard">
         <div className="space-y-4 pb-4">
-          <Field label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Field label="Phone" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <Field label="Guard number" inputMode="numeric" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, "").slice(0, 4))} />
-          <div><p className="text-sm font-medium text-text-2">Gate</p><p className="mt-1 rounded-sm bg-muted px-4 py-3 font-medium">Gate 1</p></div>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-text-2">PIN</p>
-              <p className="mt-1 text-sm text-muted-foreground">6 digits. Avoid easy ones like 123456 or 111111.</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Field label="Phone" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Guard number" inputMode="numeric" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+            <div><p className="mb-1.5 text-sm font-medium text-text-2">Gate</p><p className="flex h-12 items-center rounded-2xl bg-muted px-4 font-medium">Gate 1</p></div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-text-2">PIN</p>
+                <p className="text-xs text-muted-foreground">6 digits, not easy to guess.</p>
+              </div>
+              <button type="button" onClick={suggestPin} className="min-h-10 rounded-full bg-mint-light px-4 text-sm font-semibold text-deep">Suggest a PIN</button>
             </div>
-            <PinBoxes value={pin.value} />
-            <Keypad onDigit={pin.onDigit} onBack={pin.onBack} />
+            {suggested && pin.value === suggested ? (
+              <p className="rounded-2xl bg-gold-light px-4 py-3 text-center"><span className="code-digits text-2xl font-bold text-gold-text">{suggested.slice(0, 3)} {suggested.slice(3)}</span><span className="block text-xs text-gold-text">Give this PIN to the guard.</span></p>
+            ) : (
+              <PinBoxes value={pin.value} />
+            )}
+            <Keypad onDigit={(d) => { setSuggested(""); pin.onDigit(d); }} onBack={() => { setSuggested(""); pin.onBack(); }} />
           </div>
           {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
           <Button disabled={busy} onClick={addGuard}>{busy ? "Adding…" : "Add guard"}</Button>

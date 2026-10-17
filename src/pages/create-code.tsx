@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
+import { defaultExpiry, ExpiryOptions } from "@/components/lh/ExpiryOptions";
+import { Initial } from "@/components/lh/CodeTicket";
 import { Button, Field, Hero, Screen, Sheet } from "@/components/lh/ui";
-import { computeExpiry, lagosDateInput, lagosEndOf, lagosStartOf } from "@/lib/expiry";
+import { computeExpiry, formatUntil, lagosDateInput, lagosDay, lagosEndOf, lagosStartOf } from "@/lib/expiry";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useResident } from "@/lib/useResident";
@@ -13,17 +14,46 @@ export const title = "Create access code";
 function CreateCode() {
   const nav = useNavigate();
   const location = useLocation();
-  useResident();
+  const profile = useResident();
 
   const initialName = (location.state as { holderName?: string } | null)?.holderName ?? "";
   const [name, setName] = useState(initialName);
   const [kind, setKind] = useState<"guest" | "long_stay">("guest");
-  const [sel, setSel] = useState("Today");
+  const [sel, setSel] = useState(() => defaultExpiry());
+  const [recent, setRecent] = useState<string[]>([]);
   const [fromDate, setFromDate] = useState(() => lagosDateInput());
   const [toDate, setToDate] = useState(() => lagosDateInput(new Date(), 6));
   const [picked, setPicked] = useState("");
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
+
+  // Recent visitors: one tap fills the name.
+  useEffect(() => {
+    if (!profile) return;
+    supabase
+      .from("access_codes")
+      .select("holder_name")
+      .neq("type", "employee")
+      .order("created_at", { ascending: false })
+      .limit(30)
+      .then(({ data }) => {
+        const names: string[] = [];
+        for (const r of (data ?? []) as { holder_name: string }[]) {
+          const n = r.holder_name?.trim();
+          if (n && !names.includes(n)) names.push(n);
+          if (names.length === 6) break;
+        }
+        setRecent(names);
+      });
+  }, [profile]);
+
+  const now = new Date();
+  const until =
+    kind === "long_stay"
+      ? fromDate && toDate ? `${lagosDay(lagosStartOf(fromDate, now))} to ${lagosDay(lagosEndOf(toDate))}` : "Choose the days"
+      : sel === "Pick date and time"
+        ? picked ? formatUntil(computeExpiry(sel, now, picked), now) : "Choose a date and time"
+        : formatUntil(computeExpiry(sel, now), now);
 
   async function handleCreate() {
     const trimmed = name.trim();
@@ -100,12 +130,37 @@ function CreateCode() {
 
   return (
     <Screen>
-      <Hero>
+      <Hero className="pb-12">
         <Link to="/home" aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>
-        <h1 className="mt-4 text-3xl font-semibold">Create access code</h1>
+        <h1 className="mt-2 text-3xl font-semibold">Create access code</h1>
+        {/* The visitor's pass, filling in as you choose. The code itself appears once it's created. */}
+        <div className="mt-4 rounded-[20px] bg-white/10 p-4 ring-1 ring-white/15">
+          <div className="flex items-center gap-3">
+            {name.trim() ? <Initial name={name} className="size-11 text-lg" /> : <span className="flex size-11 items-center justify-center rounded-full bg-white/15 font-display text-lg font-bold">?</span>}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-display text-xl font-bold leading-tight">{name.trim() || "Visitor name"}</p>
+              <p className="text-sm text-deep-foreground/75">{kind === "long_stay" ? "Long stay · come and go" : "One visit"}</p>
+            </div>
+          </div>
+          <div className="mt-3 flex items-end justify-between gap-3 border-t border-dashed border-white/25 pt-3">
+            <p className="code-digits text-2xl font-bold text-gold" aria-hidden="true">••• •••</p>
+            <p className="text-right text-xs font-semibold text-deep-foreground/80">{until}</p>
+          </div>
+        </div>
       </Hero>
-      <Sheet className="space-y-6">
-        <Field label="Visitor name" placeholder="e.g. Ibrahim Yusuf" value={name} onChange={(e) => setName(e.target.value)} />
+      <Sheet className="space-y-5">
+        <div>
+          <Field label="Visitor name" placeholder="e.g. Ibrahim Yusuf" value={name} onChange={(e) => setName(e.target.value)} />
+          {recent.length > 0 && (
+            <div className="scrollbar-hidden -mx-5 mt-2 flex gap-2 overflow-x-auto px-5" aria-label="Recent visitors">
+              {recent.map((n) => (
+                <button key={n} type="button" onClick={() => setName(n)} className={cn("flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border py-1 pl-1 pr-3 text-sm font-medium", name.trim() === n ? "border-primary bg-mint-light text-deep" : "border-border bg-card")}>
+                  <Initial name={n} className="size-7 text-xs" />{n}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div>
           <p className="mb-2 text-sm font-medium text-text-2">Type of visit</p>
           <div role="radiogroup" aria-label="Type of visit" className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">

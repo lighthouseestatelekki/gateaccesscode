@@ -1,11 +1,23 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { DAY_ORDER, DAY_SHORT, type Schedule } from "@/lib/schedule";
 
 const pill = (on: boolean) => cn("min-h-11 rounded-full px-3 text-sm font-semibold transition-colors", on ? "bg-deep text-deep-foreground" : "bg-mint-lightest text-text-2");
 const input = "h-12 w-full rounded-2xl border-[1.5px] border-border bg-card px-3 text-base outline-none focus:border-primary focus:ring-4 focus:ring-primary/15";
 
+/** Common working patterns, most common first. Picking one is a single tap. */
+export const PRESETS: { key: string; label: string; hint: string; s: Schedule | null }[] = [
+  { key: "weekdays", label: "Mon–Fri", hint: "7:00 AM – 6:00 PM", s: { days: [1, 2, 3, 4, 5], start: "07:00", end: "18:00", dom: null } },
+  { key: "mon-sat", label: "Mon–Sat", hint: "7:00 AM – 6:00 PM", s: { days: [1, 2, 3, 4, 5, 6], start: "07:00", end: "18:00", dom: null } },
+  { key: "always", label: "Any time", hint: "Every day, day or night", s: { days: null, start: null, end: null, dom: null } },
+  { key: "custom", label: "Custom", hint: "Choose days and hours", s: null },
+];
+export const DEFAULT_SCHEDULE: Schedule = PRESETS[0]!.s!;
+const sameSchedule = (a: Schedule, b: Schedule) => JSON.stringify(a) === JSON.stringify(b);
+
 /** Pick when a staff code works: any time, or set days + hours (+ optional dates of the month). */
 export function ScheduleEditor({ value, onChange }: { value: Schedule; onChange: (s: Schedule) => void }) {
+  const [custom, setCustom] = useState(() => !PRESETS.some((p) => p.s && sameSchedule(value, p.s)));
   const limited = value.days !== null || value.start !== null || value.dom !== null;
   const days = value.days ?? [];
   const toggleDay = (d: number) => {
@@ -19,11 +31,25 @@ export function ScheduleEditor({ value, onChange }: { value: Schedule; onChange:
 
   return (
     <div className="space-y-4">
-      <div role="radiogroup" aria-label="When can they come in?" className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">
-        <button role="radio" aria-checked={!limited} onClick={() => onChange({ days: null, start: null, end: null, dom: null })} className={cn("min-h-12 rounded-xl text-base font-semibold", !limited ? "bg-card text-deep shadow-sm" : "text-text-2")}>Any time</button>
-        <button role="radio" aria-checked={limited} onClick={() => !limited && onChange({ days: [1, 2, 3, 4, 5], start: "07:00", end: "18:00", dom: null })} className={cn("min-h-12 rounded-xl text-base font-semibold", limited ? "bg-card text-deep shadow-sm" : "text-text-2")}>Set days & hours</button>
+      <div role="radiogroup" aria-label="When can they come in?" className="grid grid-cols-2 gap-2">
+        {PRESETS.map((p) => {
+          const on = p.key === "custom" ? custom : sameSchedule(value, p.s!) && !custom;
+          return (
+            <button
+              key={p.key}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              onClick={() => { setCustom(p.key === "custom"); if (p.s) onChange(p.s); else if (!limited) onChange(PRESETS[0]!.s!); }}
+              className={cn("flex min-h-14 flex-col items-start justify-center rounded-2xl border-[1.5px] px-3 py-1.5 text-left", on ? "border-primary bg-mint-lightest text-deep" : "border-border bg-card")}
+            >
+              <span className="text-sm font-semibold">{p.label}</span>
+              <span className="text-xs text-muted-foreground">{p.hint}</span>
+            </button>
+          );
+        })}
       </div>
-      {limited && (
+      {custom && (
         <>
           <div>
             <p className="mb-2 text-sm font-medium text-text-2">Working days</p>

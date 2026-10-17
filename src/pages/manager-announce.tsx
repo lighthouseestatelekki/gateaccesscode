@@ -8,6 +8,15 @@ import { formatWhen } from "@/lib/when";
 
 export const title = "Announcements";
 
+// Ready-made notices: tap one, then change the [bracketed] parts.
+const TEMPLATES = [
+  { k: "Water", t: "Water supply notice", b: "Assalam Alaekum, dear residents.\n\nThere will be no water supply on [DAY] from [TIME] to [TIME] for maintenance. Please store enough water.\n\nJazakAllahu Khairan." },
+  { k: "Power", t: "Power supply notice", b: "Assalam Alaekum, dear residents.\n\nThere will be a power interruption on [DAY] from [TIME] to [TIME]. We apologise for the inconvenience.\n\nJazakAllahu Khairan." },
+  { k: "Meeting", t: "Estate meeting", b: "Assalam Alaekum, dear residents.\n\nThe estate meeting holds on [DAY] at [TIME] at [VENUE]. Your attendance is important.\n\nJazakAllahu Khairan." },
+  { k: "Security", t: "Security notice", b: "Assalam Alaekum, dear residents.\n\n[WHAT RESIDENTS NEED TO KNOW]. Please share visitor codes only with people you are expecting.\n\nJazakAllahu Khairan." },
+  { k: "Sanitation", t: "Sanitation day", b: "Assalam Alaekum, dear residents.\n\nSanitation holds on [DAY] from [TIME] to [TIME]. Movement in and out of the estate may be limited.\n\nJazakAllahu Khairan." },
+] as const;
+
 type Ann = { id: string; title: string; body: string; created_at: string; recipients: number };
 
 function Announce() {
@@ -28,6 +37,10 @@ function Announce() {
   }, [me, load]);
 
   async function send() {
+    if (/\[[A-Z ]+\]/.test(b) || /\[[A-Z ]+\]/.test(t)) {
+      setError("Please replace the [bracketed] parts before sending.");
+      return;
+    }
     if (!t.trim() || !b.trim()) {
       setError("Please write a title and a message.");
       return;
@@ -56,6 +69,14 @@ function Announce() {
         <p className="mt-1 text-deep-foreground/70">Goes to every approved resident's inbox.</p>
       </Hero>
       <Sheet className="space-y-5">
+        <div>
+          <p className="mb-1.5 text-sm font-medium text-text-2">Start from a template</p>
+          <div className="scrollbar-hidden -mx-5 flex gap-2 overflow-x-auto px-5">
+            {TEMPLATES.map((x) => (
+              <button key={x.k} type="button" onClick={() => { setT(x.t); setB(x.b); setDone(""); setError(""); }} className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-semibold ${t === x.t ? "bg-deep text-deep-foreground" : "bg-mint-lightest text-text-2"}`}>{x.k}</button>
+            ))}
+          </div>
+        </div>
         <Field label="Title" maxLength={120} value={t} onChange={(e) => setT(e.target.value)} placeholder="e.g. Water supply notice" />
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium text-text-2">Message</span>

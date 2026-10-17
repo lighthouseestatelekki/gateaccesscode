@@ -22,3 +22,19 @@ describe("staff schedules", () => {
     expect(scheduleProblem({ days: [1], start: "08:00", end: "17:00", dom: null })).toBe("");
   });
 });
+
+import { DEFAULT_SCHEDULE, PRESETS } from "@/components/lh/ScheduleEditor";
+import { defaultExpiry } from "@/components/lh/ExpiryOptions";
+
+describe("smart defaults", () => {
+  it("new staff start on weekdays, 7am to 6pm, which saves without changes", () => {
+    expect(DEFAULT_SCHEDULE).toEqual({ days: [1, 2, 3, 4, 5], start: "07:00", end: "18:00", dom: null });
+    expect(scheduleProblem(DEFAULT_SCHEDULE)).toBe("");
+    expect(PRESETS.map((p) => p.label)).toEqual(["Mon–Fri", "Mon–Sat", "Any time", "Custom"]);
+  });
+  it("visitor codes default to today, or tomorrow late in the evening (Lagos time)", () => {
+    expect(defaultExpiry(new Date("2026-10-17T10:00:00Z"))).toBe("Today");
+    expect(defaultExpiry(new Date("2026-10-17T18:59:00Z"))).toBe("Today");
+    expect(defaultExpiry(new Date("2026-10-17T19:00:00Z"))).toBe("Tomorrow");
+  });
+});

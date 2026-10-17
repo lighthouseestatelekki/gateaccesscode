@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { Clock, Phone, Plus, Share2, UserMinus } from "lucide-react";
 import { BottomSheet, Button, Field, Hero, Screen, Sheet } from "@/components/lh/ui";
-import { ScheduleEditor, scheduleProblem } from "@/components/lh/ScheduleEditor";
+import { DEFAULT_SCHEDULE, ScheduleEditor, scheduleProblem } from "@/components/lh/ScheduleEditor";
+import { cn } from "@/lib/utils";
 import { formatCode, gateMessage, shareText } from "@/lib/expiry";
 import { ALWAYS, describeSchedule, fromRow, toRpc, type Schedule } from "@/lib/schedule";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +12,8 @@ import { ResidentTabs } from "@/components/lh/nav";
 import { useResident } from "@/lib/useResident";
 
 export const title = "My staff";
+
+const JOBS = ["Driver", "Cleaner", "Cook", "Nanny", "Gardener", "Other"] as const;
 
 type StaffCode = {
   id: string; code: string; holder_name: string; days_of_week: number[] | null; start_time: string | null;
@@ -33,7 +36,8 @@ function Staff() {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [job, setJob] = useState("");
+  const [job, setJob] = useState("Driver");
+  const [otherJob, setOtherJob] = useState("");
   const [sched, setSched] = useState<Schedule>(ALWAYS);
   const [editing, setEditing] = useState<StaffCode | null>(null);
   const [removing, setRemoving] = useState<StaffCode | null>(null);
@@ -54,12 +58,13 @@ function Staff() {
   }, [profile, load]);
 
   async function add() {
-    if (name.trim().length < 2 || job.trim().length < 2) return setError("Please enter their name and job, e.g. Driver.");
+    const jobTitle = job === "Other" ? otherJob.trim() : job;
+    if (name.trim().length < 2 || jobTitle.length < 2) return setError("Please enter their name and job, e.g. Driver.");
     const p = scheduleProblem(sched);
     if (p) return setError(p);
     setBusy(true);
     setError("");
-    const { error: err } = await supabase.rpc("add_employee", { p_full_name: name.trim(), p_phone: phone.trim(), p_job_title: job.trim(), ...toRpc(sched) });
+    const { error: err } = await supabase.rpc("add_employee", { p_full_name: name.trim(), p_phone: phone.trim(), p_job_title: jobTitle, ...toRpc(sched) });
     setBusy(false);
     if (err) return setError(err.message);
     setAdding(false);
@@ -98,7 +103,7 @@ function Staff() {
         <p className="mt-1 text-deep-foreground/70">Drivers, cleaners, cooks and others who come regularly. Each gets their own code.</p>
       </Hero>
       <Sheet className="space-y-4">
-        <Button onClick={() => { setName(""); setPhone(""); setJob(""); setSched(ALWAYS); setError(""); setAdding(true); }}>
+        <Button onClick={() => { setName(""); setPhone(""); setJob("Driver"); setOtherJob(""); setSched(DEFAULT_SCHEDULE); setError(""); setAdding(true); }}>
           <Plus className="size-5" /> Add staff
         </Button>
         {list && list.length === 0 && <p className="rounded-lg bg-muted p-6 text-center text-text-2">No staff yet.</p>}
@@ -130,12 +135,22 @@ function Staff() {
 
       <BottomSheet open={adding} onClose={() => !busy && setAdding(false)} title="Add staff">
         <div className="space-y-4 pb-4">
-          <Field label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
-          <Field label="Job" placeholder="e.g. Driver, Cleaner, Cook" value={job} onChange={(e) => setJob(e.target.value)} />
-          <Field label="Phone (optional)" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Full name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Field label="Phone (optional)" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-text-2">Job</p>
+            <div role="radiogroup" aria-label="Job" className="grid grid-cols-3 gap-2">
+              {JOBS.map((j) => (
+                <button key={j} type="button" role="radio" aria-checked={job === j} onClick={() => setJob(j)} className={cn("min-h-11 rounded-2xl border-[1.5px] text-sm font-semibold", job === j ? "border-primary bg-mint-light text-deep" : "border-border bg-card text-text-2")}>{j}</button>
+              ))}
+            </div>
+            {job === "Other" && <div className="mt-2"><Field label="Their job" placeholder="e.g. Security, Tutor" value={otherJob} onChange={(e) => setOtherJob(e.target.value)} /></div>}
+          </div>
           <div>
             <p className="mb-2 text-sm font-medium text-text-2">When can they come in?</p>
-            <ScheduleEditor value={sched} onChange={setSched} />
+            <ScheduleEditor key={adding ? "add-open" : "add"} value={sched} onChange={setSched} />
           </div>
           {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
           <Button disabled={busy} onClick={add}>{busy ? "Adding…" : "Add and create code"}</Button>
@@ -144,7 +159,7 @@ function Staff() {
 
       <BottomSheet open={!!editing} onClose={() => !busy && setEditing(null)} title={editing ? `${editing.holder_name}'s hours` : ""}>
         <div className="space-y-4 pb-4">
-          <ScheduleEditor value={sched} onChange={setSched} />
+          <ScheduleEditor key={editing?.id ?? "none"} value={sched} onChange={setSched} />
           {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
           <Button disabled={busy} onClick={saveHours}>{busy ? "Saving…" : "Save hours"}</Button>
         </div>

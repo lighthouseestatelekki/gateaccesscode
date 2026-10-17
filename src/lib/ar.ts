@@ -294,6 +294,45 @@ export const AR: Record<string, string> = {
   "Resolved": "تم الحل",
   "False alarm": "إنذار كاذب",
 
+  // ---- quicker forms ----
+  "Recent visitors": "زوار سابقون",
+  "Choose the days": "اختر الأيام",
+  "Choose a date and time": "اختر التاريخ والوقت",
+  "Choose any day": "اختر أي يوم",
+  "Date and time": "التاريخ والوقت",
+  "Driver": "سائق",
+  "Cleaner": "عامل نظافة",
+  "Cook": "طاهٍ",
+  "Nanny": "مربية",
+  "Gardener": "بستاني",
+  "Their job": "وظيفته",
+  "e.g. Security, Tutor": "مثال: حارس، مدرّس",
+  "Every day, day or night": "كل يوم، ليلًا ونهارًا",
+  "Custom": "مخصص",
+  "Choose days and hours": "اختر الأيام والساعات",
+  "7:00 AM – 6:00 PM": "7:00 ص – 6:00 م",
+  "Finish setting up": "أكمل الإعداد",
+  "Hide": "إخفاء",
+  "Registered your house": "سجّلت منزلك",
+  "Approved by the Estate Manager": "وافق مدير العقار",
+  "Turn on alerts": "فعّل التنبيهات",
+  "Without them you won't know when visitors arrive, or about an SOS.": "بدونها لن تعرف متى يصل زوارك أو بوجود نداء طوارئ.",
+  "Allow notifications for this site in your phone's settings.": "اسمح بالإشعارات لهذا الموقع من إعدادات هاتفك.",
+  "Install the app": "ثبّت التطبيق",
+  "One tap from your home screen.": "بلمسة واحدة من شاشتك الرئيسية.",
+  "Invite your first visitor": "ادعُ أول زائر لك",
+  "Create a code and share it on WhatsApp.": "أنشئ رمزًا وشاركه عبر واتساب.",
+  "1 quick step left": "تبقّت خطوة سريعة واحدة",
+  "2 quick steps left": "تبقّت خطوتان سريعتان",
+  "3 quick steps left": "تبقّت 3 خطوات سريعة",
+  "Alerts on iPhone": "التنبيهات على آيفون",
+  "Tap Share, then Add to Home Screen, then open Light House from your Home Screen and turn alerts on.": "اضغط «مشاركة» ثم «إضافة إلى الشاشة الرئيسية»، ثم افتح لايت هاوس من الشاشة الرئيسية وفعّل التنبيهات.",
+  "Opened the app": "فتحت التطبيق",
+  "Estate Manager review": "مراجعة مدير العقار",
+  "Usually within 24 hours": "عادةً خلال 24 ساعة",
+  "We'll alert you when you're approved": "سننبّهك عند الموافقة",
+  "Your progress": "تقدّمك",
+  "While you wait: install the app so it's one tap away when you're approved.": "أثناء الانتظار: ثبّت التطبيق ليكون على بُعد لمسة عند الموافقة.",
   // ---- menu bar ----
   "Home": "الرئيسية",
   "Codes": "الرموز",
@@ -317,9 +356,11 @@ export const AR_WORDS: Record<string, string> = {
 };
 
 const n = (x: string) => x;
+const day = (x: string) => x.replace(/[A-Za-z]+/g, (w) => AR_WORDS[w] ?? w);
 
 /** Sentences that contain a number or a name. */
 export const AR_PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^([A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2}) to ([A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2})$/, (m) => `${day(m[1]!)} إلى ${day(m[2]!)}`],
   [/^(\d+) days left$/, (m) => `متبقٍ ${n(m[1]!)} يومًا`],
   [/^(\d+) hours? left$/, (m) => `متبقٍ ${n(m[1]!)} ساعة`],
   [/^(\d+) min left$/, (m) => `متبقٍ ${n(m[1]!)} دقيقة`],

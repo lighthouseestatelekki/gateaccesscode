@@ -11,7 +11,14 @@ export const title = "Guard sign in";
 function GuardLogin() {
   const nav = useNavigate();
   const pin = usePin();
-  const [guardNumber, setGuardNumber] = useState("");
+  // The gate phone remembers the last guard number, so the next shift only types a PIN.
+  const [guardNumber, setGuardNumber] = useState(() => {
+    try {
+      return localStorage.getItem("lh.guardNo") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [error, setError] = useState("");
   const [signingIn, setSigningIn] = useState(false);
 
@@ -87,6 +94,11 @@ function GuardLogin() {
     }
 
     setStaffChoice("guard");
+    try {
+      localStorage.setItem("lh.guardNo", cleanedNumber);
+    } catch {
+      /* ignore */
+    }
     nav("/guard/verify");
   }
 

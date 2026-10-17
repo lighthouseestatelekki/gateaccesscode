@@ -1,12 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { Plus, ShieldAlert, X } from "lucide-react";
+import { Plus, ShieldAlert } from "lucide-react";
 import { CodeTicket, Initial } from "@/components/lh/CodeTicket";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
-import { AlertsCard } from "@/components/lh/AlertsCard";
+import { SetupCard } from "@/components/lh/SetupCard";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, Wordmark } from "@/components/lh/ui";
 import { computeExpiry, shareAccessCode } from "@/lib/expiry";
-import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { ResidentTabs } from "@/components/lh/nav";
@@ -32,8 +31,6 @@ type AccessCodeRow = {
 function Home() {
   const nav = useNavigate();
   const profile = useResident();
-  const [banner, setBanner] = useState(() => !isInstalled());
-  const [how, setHow] = useState(false);
   const [h, setH] = useState(hadith[0]!);
   const [codes, setCodes] = useState<AccessCodeRow[]>([]);
   const [counts, setCounts] = useState<{ active: number; used: number; expired: number; cancelled: number; total: number } | null>(null);
@@ -176,7 +173,7 @@ function Home() {
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
 
-        <AlertsCard userId={me?.id} />
+        <SetupCard userId={me?.id} hasCodes={(counts?.total ?? codes.length) > 0} />
 
         {recentVisitors.length > 0 && (
           <section>
@@ -239,13 +236,6 @@ function Home() {
             </ul>
           )}
         </section>
-        {banner && (
-          <div className="flex items-center gap-3 rounded-lg bg-mint-lightest p-3 pl-4">
-            <p className="flex-1 text-sm text-text-2">Install the app on this phone for quick access</p>
-            <button onClick={async () => { if (!(await promptInstall())) setHow(true); }} className="min-h-11 rounded-sm bg-card px-4 text-sm font-semibold text-deep">Install</button>
-            <button onClick={() => setBanner(false)} aria-label="Dismiss" className="flex size-11 items-center justify-center text-muted-foreground"><X className="size-4" /></button>
-          </div>
-        )}
 
         <section className="deep-card relative overflow-hidden rounded-lg p-6">
           <span aria-hidden className="pointer-events-none absolute -top-3 right-4 font-display text-9xl font-extrabold leading-none text-gold/25">”</span>
@@ -257,12 +247,6 @@ function Home() {
           </div>
         </section>
       </Sheet>
-      <BottomSheet open={how} onClose={() => setHow(false)} title="Install App">
-        <div className="space-y-3 pb-4 text-base text-text-2">
-          <p>iPhone: tap the Share icon, then Add to Home Screen.</p>
-          <p>Android: tap the menu (three dots), then Add to Home screen.</p>
-        </div>
-      </BottomSheet>
       <BottomSheet
         open={Boolean(cancelTarget)}
         onClose={() => {
