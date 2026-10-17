@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { LogOut, Plus, Share2, X } from "lucide-react";
+import { Bell, LogOut, Plus, Share2, ShieldAlert, X } from "lucide-react";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
 import { computeExpiry, formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
@@ -8,6 +8,8 @@ import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
+import { useInbox } from "@/lib/useInbox";
+import { useMe } from "@/lib/useMe";
 import { dailyHadith, HADITH_ATTRIBUTION, hadith } from "@/mock/hadith";
 
 export const title = "Home";
@@ -57,6 +59,11 @@ function Home() {
       .limit(20);
     if (data) setCodes(data as AccessCodeRow[]);
   }, []);
+
+  const me = useMe();
+  const { unread } = useInbox(me?.id, (n) => {
+    if (n.kind.startsWith("code_")) loadCodes();
+  });
 
   useEffect(() => {
     if (!profile) return;
@@ -135,6 +142,14 @@ function Home() {
       <Hero className="pb-14">
         <div className="flex items-center justify-between">
           <Wordmark />
+          <div className="-mr-2 flex items-center">
+          <Link to="/sos" aria-label="SOS emergency" className="flex h-10 items-center gap-1 rounded-full bg-destructive px-3 text-sm font-bold text-white shadow-sm">
+            <ShieldAlert className="size-4" /> SOS
+          </Link>
+          <Link to="/inbox" aria-label={unread ? `Inbox, ${unread} new` : "Inbox"} className="relative flex size-11 items-center justify-center rounded-full text-deep-foreground/90 hover:bg-deep-mid">
+            <Bell className="size-5" />
+            {unread > 0 && <span className="absolute right-1 top-1 flex min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[11px] font-bold leading-5 text-deep-dark">{unread > 9 ? "9+" : unread}</span>}
+          </Link>
           <Link
             to="/login"
             onClick={async (e) => {
@@ -143,10 +158,11 @@ function Home() {
               nav("/login");
             }}
             aria-label="Log out"
-            className="-mr-2 flex size-11 items-center justify-center rounded-full text-deep-foreground/80 hover:bg-deep-mid"
+            className="flex size-11 items-center justify-center rounded-full text-deep-foreground/80 hover:bg-deep-mid"
           >
             <LogOut className="size-5" />
           </Link>
+          </div>
         </div>
         <p className="mt-8 text-base leading-snug text-deep-foreground/80">Assalam Alaekum Waramotullahi Wabarakatu.</p>
         <h1 className="mt-1 text-4xl font-semibold">{firstName}</h1>

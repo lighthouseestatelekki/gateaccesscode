@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ChevronRight, LogOut } from "lucide-react";
+import { ChevronRight, LogOut, Megaphone } from "lucide-react";
 import { Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
@@ -40,16 +40,21 @@ function Approvals() {
       <Hero>
         <div className="flex items-center justify-between pt-2">
           <h1 className="text-3xl font-semibold">Approvals</h1>
+          <div className="-mr-2 flex items-center gap-1">
+          <Link to="/manager/announce" className="flex h-11 items-center gap-1.5 rounded-full bg-white/15 px-3.5 text-sm font-semibold text-white">
+            <Megaphone className="size-4" /> Announce
+          </Link>
           <button
             aria-label="Sign out"
             onClick={async () => {
               await supabase.auth.signOut();
               nav("/manager/login");
             }}
-            className="-mr-2 flex size-11 items-center justify-center rounded-full text-deep-foreground/80"
+            className="flex size-11 items-center justify-center rounded-full text-deep-foreground/80"
           >
             <LogOut className="size-5" />
           </button>
+          </div>
         </div>
         <div className="mt-5 grid grid-cols-2 divide-x divide-deep-foreground/15 rounded-sm bg-deep-dark/40 py-3">
           <div className="px-4"><p className="font-display text-2xl font-bold">{stats?.codes_today ?? "–"}</p><p className="text-xs text-deep-foreground/70">Codes issued today</p></div>

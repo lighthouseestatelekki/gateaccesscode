@@ -9,6 +9,10 @@ import * as GuardVerdictDenied from "@/pages/guard-verdict-denied";
 import * as GuardVerdictExpired from "@/pages/guard-verdict-expired";
 import * as GuardVerify from "@/pages/guard-verify";
 import * as Hadith from "@/pages/hadith";
+import * as Inbox from "@/pages/inbox";
+import * as Sos from "@/pages/sos";
+import * as ManagerAnnounce from "@/pages/manager-announce";
+import { SosWatcher } from "@/components/lh/SosWatcher";
 import * as Home from "@/pages/home";
 import * as Login from "@/pages/login";
 import * as ManagerApprovals from "@/pages/manager-approvals";
@@ -31,6 +35,8 @@ function Page({ title, children }: { title: string; children: ReactNode }) {
 
 export default function App() {
   return (
+    <>
+    <SosWatcher />
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/change-pin" element={<Page title={ChangePin.title}><ChangePin.default /></Page>} />
@@ -42,6 +48,9 @@ export default function App() {
         <Route path="/guard/verdict/expired" element={<Page title={GuardVerdictExpired.title}><GuardVerdictExpired.default /></Page>} />
         <Route path="/guard/verify" element={<Page title={GuardVerify.title}><GuardVerify.default /></Page>} />
         <Route path="/hadith" element={<Page title={Hadith.title}><Hadith.default /></Page>} />
+        <Route path="/inbox" element={<Page title={Inbox.title}><Inbox.default /></Page>} />
+        <Route path="/sos" element={<Page title={Sos.title}><Sos.default /></Page>} />
+        <Route path="/manager/announce" element={<Page title={ManagerAnnounce.title}><ManagerAnnounce.default /></Page>} />
         <Route path="/home" element={<Page title={Home.title}><Home.default /></Page>} />
         <Route path="/login" element={<Page title={Login.title}><Login.default /></Page>} />
         <Route path="/manager/approvals" element={<Page title={ManagerApprovals.title}><ManagerApprovals.default /></Page>} />
@@ -54,5 +63,6 @@ export default function App() {
         <Route path="/register" element={<Page title={Register.title}><Register.default /></Page>} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
+    </>
   );
 }

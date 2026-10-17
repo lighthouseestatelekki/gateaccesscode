@@ -14,6 +14,9 @@ const { mockRpc, mockGetSession, mockSingle, mockSignOut, mockLimit } = vi.hoist
   mockLimit: vi.fn(),
 }));
 
+vi.mock("@/lib/useMe", () => ({ useMe: () => null }));
+vi.mock("@/lib/useInbox", () => ({ useInbox: () => ({ items: [], unread: 0, reload: () => {}, markAllRead: () => {} }) }));
+
 vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: {
