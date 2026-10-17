@@ -1,24 +1,27 @@
-# Pixel Perfect Display
+# Lighthouse Lekki — Estate Access Codes (v1 design)
 
-Implement exactly the screenshot and nothing else
+Mobile-first PWA for a gated estate: residents create 6-digit visitor codes, guards verify them at the gate, the Estate Manager oversees everything.
 
-This project was built with [Lovable](https://lovable.dev).
+**Stack:** Vite + React + TypeScript + Tailwind v4 + react-router-dom v6 (Supabase to be wired next).
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/31de1672-48b8-4fa1-b4bc-855584be56bd).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+## Run it
 ```
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # type-check + production build
+npm test
+```
+
+## Status
+This is the **design prototype** with mock data (`src/mock/`). Screens: login, register, pending, home, create code, code created, hadith, change PIN, guard login/verify/verdicts (access, expired, denied), manager login/approvals/residents/guards.
+Nothing here talks to a database yet.
+
+## Roadmap
+- Stage 1: wire register → approve → login → create Guest code → guard verify to Supabase (SQL already in the Supabase project), plus Share and conveniences.
+- Stage 2: announcements, SOS, push and email notifications.
+- Stage 3: Long Stay codes. Stage 4: Employee codes and Estate Manager overrides. Stage 5: analytics.
+
+## Must do before go-live
+- Lock a house out after repeated wrong PINs.
+- Reject easy PINs (123456, 111111, 654321, repeated digits, straight sequences).
+- Have a scholar verify every hadith marked VERIFY in the library.

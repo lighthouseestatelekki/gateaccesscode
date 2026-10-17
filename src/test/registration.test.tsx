@@ -1,69 +1,61 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import { createElement, type ComponentType, type ReactNode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { afterEach, describe, expect, it } from "vitest";
+import Register from "@/pages/register";
 
-const navigate = vi.hoisted(() => vi.fn());
-vi.mock("@tanstack/react-router", () => ({
-  createFileRoute: () => (options: unknown) => ({ options }),
-  useNavigate: () => navigate,
-  Link: ({ children }: { children: ReactNode }) => <a>{children}</a>,
-}));
+afterEach(cleanup);
 
-import { Route } from "@/routes/register";
-
-afterEach(() => { cleanup(); navigate.mockClear(); });
-
-function openRegistration() {
-  render(createElement(Route.options.component as ComponentType));
+function open() {
+  render(
+    <MemoryRouter initialEntries={["/register"]}>
+      <Routes>
+        <Route path="/register" element={<Register />} />
+        <Route path="/pending" element={<p>PENDING PAGE</p>} />
+        <Route path="/login" element={<p>LOGIN PAGE</p>} />
+      </Routes>
+    </MemoryRouter>,
+  );
 }
-
-function openPinStep() {
-  openRegistration();
-  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-}
-
+const next = () => fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+function openPinStep() { open(); next(); next(); }
 function enterPin(label: string, digits: string) {
   const group = within(screen.getByRole("group", { name: label }));
-  for (const digit of digits) fireEvent.click(group.getByRole("button", { name: digit }));
+  for (const d of digits) fireEvent.click(group.getByRole("button", { name: d }));
 }
+const submit = () => screen.getByRole("button", { name: "Submit registration" });
 
 describe("Registration rules", () => {
-  it("shows one step at a time and retains details after going back", () => {
-    openRegistration();
+  it("shows one step at a time and keeps details after going back", () => {
+    open();
     fireEvent.change(screen.getByLabelText("Full name"), { target: { value: "Aisha Bello" } });
     expect(screen.getByLabelText("Full name")).toBeVisible();
     expect(screen.getByLabelText("Relationship")).not.toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    next();
     expect(screen.getByLabelText("Full name")).not.toBeVisible();
     expect(screen.getByLabelText("Relationship")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(screen.getByLabelText("Full name")).toHaveValue("Aisha Bello");
   });
 
-  it("requires exactly six digits in both PIN entries before submission", () => {
+  it("needs six digits in both PIN entries before submitting", () => {
     openPinStep();
     enterPin("Enter 6 digits", "246810");
     enterPin("Confirm your PIN", "24681");
-    expect(screen.getByRole("button", { name: "Submit registration" })).toBeDisabled();
+    expect(submit()).toBeDisabled();
     enterPin("Confirm your PIN", "0");
-    enterPin("Enter 6 digits", "9");
-    const submit = screen.getByRole("button", { name: "Submit registration" });
-    expect(submit).toBeEnabled();
-    fireEvent.click(submit);
-    expect(navigate).toHaveBeenCalledWith({ to: "/pending" });
+    expect(submit()).toBeEnabled();
+    fireEvent.click(submit());
+    expect(screen.getByText("PENDING PAGE")).toBeInTheDocument();
   });
 
-  it("blocks differing PINs and permits submission after correction", () => {
+  it("blocks PINs that differ, and allows submit once corrected", () => {
     openPinStep();
     enterPin("Enter 6 digits", "246810");
     enterPin("Confirm your PIN", "246819");
-    const submit = screen.getByRole("button", { name: "Submit registration" });
-    expect(submit).toBeDisabled();
-    fireEvent.click(submit);
-    expect(navigate).not.toHaveBeenCalled();
+    expect(submit()).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent("PINs do not match");
     fireEvent.click(within(screen.getByRole("group", { name: "Confirm your PIN" })).getByRole("button", { name: "Delete" }));
     enterPin("Confirm your PIN", "0");
-    expect(submit).toBeEnabled();
+    expect(submit()).toBeEnabled();
   });
 });

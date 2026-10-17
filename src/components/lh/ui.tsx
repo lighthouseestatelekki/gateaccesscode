@@ -1,21 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "react-router-dom";
 import { Delete, ChevronDown, X } from "lucide-react";
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
 import { hadith, HADITH_ATTRIBUTION } from "@/mock/hadith";
 import { cn } from "@/lib/utils";
-
-export function meta(title: string, description: string) {
-  return {
-    meta: [
-      { title: `${title} · Lighthouse Lekki` },
-      { name: "description", content: description },
-      { property: "og:title", content: `${title} · Lighthouse Lekki` },
-      { property: "og:description", content: description },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  };
-}
 
 export function Screen({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn("mx-auto flex min-h-dvh w-full max-w-md flex-col bg-background", className)}>{children}</div>;
@@ -43,9 +30,10 @@ export function Sheet({ children, className }: { children: ReactNode; className?
   return <main className={cn("sheet flex-1 px-5 pt-7", className)}>{children}</main>;
 }
 
-type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "ghost" | "danger" | "outline" };
+type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "gold" | "secondary" | "ghost" | "danger" | "outline" };
 const btn = {
   primary: "bg-primary text-primary-foreground hover:bg-primary-hover shadow-[0_10px_24px_-12px_var(--primary)]",
+  gold: "bg-gold text-deep-dark font-bold hover:brightness-95 shadow-[0_14px_30px_-14px_var(--gold)]",
   secondary: "bg-mint-light text-deep hover:bg-mint-light/70",
   outline: "border border-border bg-card text-foreground hover:bg-mint-lightest",
   ghost: "text-deep hover:bg-mint-lightest",
@@ -58,11 +46,11 @@ export function Button({ variant = "primary", className, ...p }: BtnProps) {
   return <button {...p} className={btnClass(variant, className)} />;
 }
 
-export function Field({ label, ...p }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+export function Field({ label, tone = "light", ...p }: { label: string; tone?: "light" | "dark" } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-text-2">{label}</span>
-      <input {...p} className="h-13 min-h-12 w-full rounded-sm border border-border bg-card px-4 text-base text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/25" />
+      <span className={cn("mb-1.5 block text-sm font-medium", tone === "dark" ? "text-deep-foreground/70" : "text-text-2")}>{label}</span>
+      <input {...p} className={cn("h-13 min-h-12 w-full rounded-sm border px-4 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/25", tone === "dark" ? "border-deep-foreground/20 bg-deep-mid text-deep-foreground placeholder:text-deep-foreground/40" : "border-border bg-card text-foreground")} />
     </label>
   );
 }
@@ -94,11 +82,11 @@ export function PinBoxes({ value, size = "md", tone = "light" }: { value: string
               "flex items-center justify-center rounded-full border-2 transition-all",
               size === "lg" ? "size-13 min-h-12 min-w-12" : "size-11",
               tone === "dark" ? "border-deep-foreground/25" : "border-border bg-mint-lightest",
-              filled && (tone === "dark" ? "border-primary bg-primary/20" : "border-primary bg-mint-light"),
+              filled && (tone === "dark" ? "border-primary bg-primary" : "border-deep bg-deep"),
               active && "border-primary",
             )}
           >
-            {filled && <span className={cn("rounded-full", size === "lg" ? "size-3.5" : "size-3", tone === "dark" ? "bg-deep-foreground" : "bg-deep")} />}
+            {filled && <span className={cn("rounded-full", size === "lg" ? "size-3.5" : "size-3", tone === "dark" ? "bg-white" : "bg-gold")} />}
           </div>
         );
       })}
@@ -110,7 +98,7 @@ export function Keypad({ onDigit, onBack, tone = "light", big }: { onDigit: (d: 
   const key = cn(
     "flex items-center justify-center rounded-lg font-display font-medium transition-colors active:scale-95",
     big ? "h-18 min-h-16 text-3xl" : "h-14 text-2xl",
-    tone === "dark" ? "bg-deep-mid text-deep-foreground active:bg-deep-dark" : "bg-mint-lightest text-deep active:bg-mint-light",
+    tone === "dark" ? "bg-deep-mid text-deep-foreground active:bg-primary" : "border-[1.5px] border-deep/15 bg-card text-deep font-semibold shadow-sm active:border-primary active:bg-primary active:text-primary-foreground",
   );
   return (
     <div className="grid grid-cols-3 gap-2.5">
@@ -119,7 +107,7 @@ export function Keypad({ onDigit, onBack, tone = "light", big }: { onDigit: (d: 
       ))}
       <span />
       <button type="button" className={key} onClick={() => onDigit("0")}>0</button>
-      <button type="button" aria-label="Delete" className={cn(key, "bg-transparent")} onClick={onBack}>
+      <button type="button" aria-label="Delete" className={cn(key, "border-transparent bg-transparent shadow-none")} onClick={onBack}>
         <Delete className="size-7" />
       </button>
     </div>
@@ -194,19 +182,19 @@ export function StatusChip({ status }: { status: "Active" | "Used" | "Expired" }
 }
 
 export function ManagerTabs() {
-  const path = useRouterState({ select: (s) => s.location.pathname });
+  const path = useLocation().pathname;
   const tabs = [
     { to: "/manager/approvals", label: "Approvals" },
     { to: "/manager/residents", label: "Residents" },
     { to: "/manager/guards", label: "Guards" },
   ] as const;
   return (
-    <nav className="sticky bottom-0 mt-auto grid grid-cols-3 border-t border-border bg-card safe-bottom pt-1">
+    <nav className="sticky bottom-0 mt-auto grid grid-cols-3 border-t border-deep-mid bg-deep-dark safe-bottom pt-1">
       {tabs.map((t) => {
         const on = path.startsWith(t.to);
         return (
-          <Link key={t.to} to={t.to} className={cn("flex min-h-14 flex-col items-center justify-center text-sm font-semibold", on ? "text-deep" : "text-muted-foreground")}>
-            <span className={cn("mb-1 h-1 w-8 rounded-full", on ? "bg-primary" : "bg-transparent")} />
+          <Link key={t.to} to={t.to} className={cn("flex min-h-14 flex-col items-center justify-center text-sm font-semibold", on ? "text-white" : "text-deep-foreground/55")}>
+            <span className={cn("mb-1 h-1 w-8 rounded-full", on ? "bg-gold" : "bg-transparent")} />
             {t.label}
           </Link>
         );
