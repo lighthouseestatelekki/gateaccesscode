@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button, Field, Hero, Screen, Sheet, Wordmark } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
+import { setStaffChoice } from "@/lib/entry";
+import { ResidentLink, StaffSwitch } from "@/components/lh/nav";
 
 export const title = "Estate Manager sign in";
 
@@ -47,6 +49,7 @@ function ManagerLogin() {
       setBusy(false);
       return;
     }
+    setStaffChoice("manager");
     nav("/manager/approvals", { replace: true });
   }
 
@@ -54,13 +57,15 @@ function ManagerLogin() {
     <Screen>
       <Hero className="pb-16">
         <Wordmark />
-        <h1 className="mt-10 text-3xl font-semibold leading-tight">Assalam Alaekum, Estate Manager sign in</h1>
+        <div className="mt-5"><StaffSwitch value="manager" /></div>
+        <h1 className="mt-6 text-3xl font-semibold leading-tight">Assalam Alaekum, Estate Manager sign in</h1>
       </Hero>
       <Sheet className="space-y-5">
         <Field label="Email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Field label="Password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && signIn()} />
         {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
         <Button disabled={busy} onClick={signIn}>{busy ? "Signing in…" : "Sign in"}</Button>
+        <div className="flex justify-center"><ResidentLink className="text-xs" /></div>
       </Sheet>
     </Screen>
   );

@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Hero, Screen, Sheet } from "@/components/lh/ui";
 import { BarList, ColumnChart, dayPoints, hourPoints, StatTile } from "@/components/lh/charts";
 import { supabase } from "@/lib/supabase";
+import { ResidentTabs } from "@/components/lh/nav";
 import { useResident } from "@/lib/useResident";
 
 export const title = "Insights";
@@ -25,7 +26,7 @@ function Insights() {
   return (
     <Screen>
       <Hero>
-        <Link to="/home" aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>
+        <Link to="/more" aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>
         <h1 className="mt-4 text-3xl font-semibold">Insights</h1>
         <p className="mt-1 text-deep-foreground/70">Visitors to House {profile.house_number} in the last 30 days.</p>
       </Hero>
@@ -45,6 +46,7 @@ function Insights() {
           </>
         )}
       </Sheet>
+      <ResidentTabs />
     </Screen>
   );
 }

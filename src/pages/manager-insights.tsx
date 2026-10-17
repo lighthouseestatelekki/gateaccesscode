@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
 import { BarList, ColumnChart, dayPoints, hourPoints, StatTile } from "@/components/lh/charts";
@@ -31,7 +33,8 @@ function ManagerInsights() {
   return (
     <Screen>
       <Hero>
-        <h1 className="pt-2 text-3xl font-semibold">Insights</h1>
+        <Link to="/manager/more" aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>
+        <h1 className="mt-4 text-3xl font-semibold">Insights</h1>
         <p className="mt-1 text-deep-foreground/70">How the gate and the estate are being used.</p>
       </Hero>
       <Sheet className="space-y-4">

@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { Hero, Screen, Sheet, StatusChip } from "@/components/lh/ui";
 import { formatCode, formatValidity, shareAccessCode } from "@/lib/expiry";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
+import { ResidentTabs } from "@/components/lh/nav";
 import { useResident } from "@/lib/useResident";
 import { formatWhen } from "@/lib/when";
 import { cn } from "@/lib/utils";
@@ -55,8 +56,7 @@ function Codes() {
   return (
     <Screen>
       <Hero>
-        <Link to="/home" aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>
-        <h1 className="mt-4 text-3xl font-semibold">My codes</h1>
+        <h1 className="pt-2 text-3xl font-semibold">My codes</h1>
         {counts && (
           <div className="mt-4 grid grid-cols-4 divide-x divide-deep-foreground/15 rounded-sm bg-deep-dark/40 py-3 text-center">
             {([["Active", counts["active"]], ["Used", counts["used"]], ["Expired", (counts["expired"] ?? 0) + (counts["cancelled"] ?? 0)], ["Total", counts["total"]]] as const).map(([l, n]) => (
@@ -109,6 +109,7 @@ function Codes() {
           })}
         </ul>
       </Sheet>
+      <ResidentTabs />
     </Screen>
   );
 }

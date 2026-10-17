@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { BarChart3, Bell, KeyRound, LogOut, Plus, Share2, ShieldAlert, Users, X } from "lucide-react";
+import { Plus, Share2, ShieldAlert, X } from "lucide-react";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { AlertsCard } from "@/components/lh/AlertsCard";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
@@ -8,6 +8,7 @@ import { computeExpiry, formatCode, formatUntil, formatValidity, shareAccessCode
 import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
+import { ResidentTabs } from "@/components/lh/nav";
 import { useResident } from "@/lib/useResident";
 import { useInbox } from "@/lib/useInbox";
 import { useMe } from "@/lib/useMe";
@@ -68,7 +69,7 @@ function Home() {
   }, []);
 
   const me = useMe();
-  const { unread } = useInbox(me?.id, (n) => {
+  useInbox(me?.id, (n) => {
     if (n.kind.startsWith("code_")) loadCodes();
   });
 
@@ -153,22 +154,6 @@ function Home() {
           <Link to="/sos" aria-label="SOS emergency" className="flex h-10 items-center gap-1 rounded-full bg-destructive px-3 text-sm font-bold text-white shadow-sm">
             <ShieldAlert className="size-4" /> SOS
           </Link>
-          <Link to="/inbox" aria-label={unread ? `Inbox, ${unread} new` : "Inbox"} className="relative flex size-11 items-center justify-center rounded-full text-deep-foreground/90 hover:bg-deep-mid">
-            <Bell className="size-5" />
-            {unread > 0 && <span className="absolute right-1 top-1 flex min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[11px] font-bold leading-5 text-deep-dark">{unread > 9 ? "9+" : unread}</span>}
-          </Link>
-          <Link
-            to="/login"
-            onClick={async (e) => {
-              e.preventDefault();
-              await supabase.auth.signOut();
-              nav("/login");
-            }}
-            aria-label="Log out"
-            className="flex size-11 items-center justify-center rounded-full text-deep-foreground/80 hover:bg-deep-mid"
-          >
-            <LogOut className="size-5" />
-          </Link>
           </div>
         </div>
         <p className="mt-8 text-base leading-snug text-deep-foreground/80">Assalam Alaekum Waramotullahi Wabarakatu.</p>
@@ -177,11 +162,6 @@ function Home() {
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
-        <div className="-mt-3 grid grid-cols-3 gap-2">
-          <Link to="/codes" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><KeyRound className="size-4" /> My codes</Link>
-          <Link to="/staff" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><Users className="size-4" /> My staff</Link>
-          <Link to="/insights" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-mint-lightest text-sm font-semibold text-deep"><BarChart3 className="size-4" /> Insights</Link>
-        </div>
 
         <AlertsCard userId={me?.id} />
 
@@ -366,6 +346,7 @@ function Home() {
           </Button>
         </div>
       </BottomSheet>
+      <ResidentTabs />
     </Screen>
   );
 }

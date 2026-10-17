@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button, Hero, Keypad, PinBoxes, Screen, Sheet, usePin, Wordmark } from "@/components/lh/ui";
 import { isWeakPin } from "@/lib/pin";
@@ -54,6 +54,7 @@ function ChangePin() {
         <Button disabled={busy || first.value.length !== 6 || second.value.length !== 6 || weak || mismatch} onClick={save}>
           {busy ? "Saving…" : "Save PIN"}
         </Button>
+        {!profile.must_change_pin && <Link to="/more" className="flex min-h-11 items-center justify-center text-sm font-semibold text-text-2">Not now</Link>}
       </Sheet>
     </Screen>
   );

@@ -19,6 +19,9 @@ import * as Sos from "@/pages/sos";
 import * as ManagerAnnounce from "@/pages/manager-announce";
 import { SosWatcher } from "@/components/lh/SosWatcher";
 import * as Home from "@/pages/home";
+import * as Welcome from "@/pages/welcome";
+import * as More from "@/pages/more";
+import * as ManagerMore from "@/pages/manager-more";
 import * as Login from "@/pages/login";
 import * as ManagerApprovals from "@/pages/manager-approvals";
 import * as ManagerApprovalDetail from "@/pages/manager-approval-detail";
@@ -43,7 +46,9 @@ export default function App() {
     <>
     <SosWatcher />
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Page title={Welcome.title}><Welcome.default /></Page>} />
+        <Route path="/more" element={<Page title={More.title}><More.default /></Page>} />
+        <Route path="/manager/more" element={<Page title={ManagerMore.title}><ManagerMore.default /></Page>} />
         <Route path="/change-pin" element={<Page title={ChangePin.title}><ChangePin.default /></Page>} />
         <Route path="/code-created" element={<Page title={CodeCreated.title}><CodeCreated.default /></Page>} />
         <Route path="/create-code" element={<Page title={CreateCode.title}><CreateCode.default /></Page>} />
@@ -71,7 +76,7 @@ export default function App() {
         <Route path="/manager/residents" element={<Page title={ManagerResidents.title}><ManagerResidents.default /></Page>} />
         <Route path="/pending" element={<Page title={Pending.title}><Pending.default /></Page>} />
         <Route path="/register" element={<Page title={Register.title}><Register.default /></Page>} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </>
   );

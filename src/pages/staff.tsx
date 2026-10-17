@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Clock, Phone, Plus, Share2, UserMinus } from "lucide-react";
+import { Clock, Phone, Plus, Share2, UserMinus } from "lucide-react";
 import { BottomSheet, Button, Field, Hero, Screen, Sheet } from "@/components/lh/ui";
 import { ScheduleEditor, scheduleProblem } from "@/components/lh/ScheduleEditor";
 import { formatCode, gateMessage, shareText } from "@/lib/expiry";
 import { ALWAYS, describeSchedule, fromRow, toRpc, type Schedule } from "@/lib/schedule";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
+import { ResidentTabs } from "@/components/lh/nav";
 import { useResident } from "@/lib/useResident";
 
 export const title = "My staff";
@@ -93,8 +94,7 @@ function Staff() {
   return (
     <Screen>
       <Hero>
-        <Link to="/home" aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>
-        <h1 className="mt-4 text-3xl font-semibold">My staff</h1>
+        <h1 className="pt-2 text-3xl font-semibold">My staff</h1>
         <p className="mt-1 text-deep-foreground/70">Drivers, cleaners, cooks and others who come regularly. Each gets their own code.</p>
       </Hero>
       <Sheet className="space-y-4">
@@ -158,6 +158,7 @@ function Staff() {
           <Button variant="outline" disabled={busy} onClick={() => setRemoving(null)}>Keep</Button>
         </div>
       </BottomSheet>
+      <ResidentTabs />
     </Screen>
   );
 }

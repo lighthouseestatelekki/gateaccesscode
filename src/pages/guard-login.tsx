@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button, Field, Keypad, PinBoxes, usePin, Wordmark } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { pinSignIn } from "@/lib/staffAdmin";
+import { setStaffChoice } from "@/lib/entry";
+import { ResidentLink, StaffSwitch } from "@/components/lh/nav";
 
 export const title = "Guard sign in";
 
@@ -84,13 +86,15 @@ function GuardLogin() {
       return;
     }
 
+    setStaffChoice("guard");
     nav("/guard/verify");
   }
 
   return (
     <div className="hero mx-auto flex min-h-dvh max-w-md flex-col px-5 safe-bottom">
-      <Wordmark />
-      <h1 className="mt-10 text-3xl leading-tight">Assalam Alaekum, guard sign in</h1>
+      <div className="flex min-h-11 items-center pt-2"><Wordmark /></div>
+      <div className="mt-5"><StaffSwitch value="guard" /></div>
+      <h1 className="mt-6 text-3xl leading-tight">Assalam Alaekum, guard sign in</h1>
       <div className="mt-8 space-y-5">
         <Field
           tone="dark"
@@ -124,6 +128,7 @@ function GuardLogin() {
         <Button disabled={signingIn} onClick={handleSignIn}>
           {signingIn ? "Signing in…" : "Sign in"}
         </Button>
+        <div className="flex justify-center"><ResidentLink className="text-xs text-white/60" /></div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { HadithLine, Hero, Keypad, PinBoxes, Screen, Sheet, UnitPicker, usePin, Button } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { pinSignIn } from "@/lib/staffAdmin";
+import { setStaffChoice } from "@/lib/entry";
 import { unitToCode } from "@/lib/units";
 import { UNITS } from "@/mock/data";
 
@@ -44,6 +45,14 @@ function Brand({ right }: { right?: React.ReactNode }) {
   );
 }
 
+function StaffLink() {
+  return (
+    <div className="flex justify-center">
+      <Link to="/guard/login" className="inline-flex min-h-11 items-center px-3 text-xs font-semibold text-muted-foreground">Staff sign-in</Link>
+    </div>
+  );
+}
+
 /** Step 1 (first time, or after "Change house"): which house and unit. */
 function PickHouse({ onDone }: { onDone: (h: House) => void }) {
   const num = usePin();
@@ -73,6 +82,7 @@ function PickHouse({ onDone }: { onDone: (h: House) => void }) {
         <Button disabled={!num.value || num.value === "0"} onClick={() => onDone({ number: String(Number(num.value)), unit })}>
           Continue
         </Button>
+        <StaffLink />
       </Sheet>
     </Screen>
   );
@@ -158,6 +168,7 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
 
     if (profile.status === "active") {
       saveHouse(house);
+      setStaffChoice(null);
       nav("/home");
       return;
     }
@@ -201,6 +212,7 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
         />
         <p className="text-center text-sm text-text-2">Signs you in on the 6th digit · Forgot your PIN? Ask the Estate Manager.</p>
         <HadithLine className="pt-1" />
+        <StaffLink />
       </Sheet>
     </Screen>
   );

@@ -1,3 +1,4 @@
+import { ResidentTabs } from "@/components/lh/nav";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowLeft, Bell, DoorOpen, LogIn, Megaphone, ShieldAlert, ShieldCheck, XCircle } from "lucide-react";
@@ -40,6 +41,7 @@ function Row({ n }: { n: Notice }) {
 function Inbox() {
   const me = useMe();
   const { items, unread, markAllRead } = useInbox(me?.id);
+  const resident = me?.role === "resident";
   const back = me?.role === "guard" ? "/guard/verify" : me?.role === "estate_manager" ? "/manager/approvals" : "/home";
 
   // Opening the inbox counts as reading it.
@@ -54,14 +56,15 @@ function Inbox() {
   return (
     <Screen>
       <Hero>
-        <Link to={back} aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>
-        <h1 className="mt-4 text-3xl font-semibold">Inbox</h1>
+        {resident ? null : <Link to={back} aria-label="Back" className="-ml-2 flex size-11 items-center justify-center rounded-full"><ArrowLeft className="size-6" /></Link>}
+        <h1 className={resident ? "pt-2 text-3xl font-semibold" : "mt-4 text-3xl font-semibold"}>Inbox</h1>
         <p className="mt-1 text-deep-foreground/70">Announcements and updates about your codes.</p>
       </Hero>
       <Sheet>
         {items && items.length === 0 && <p className="rounded-lg bg-muted p-6 text-center text-text-2">Nothing here yet.</p>}
         <ul className="divide-y divide-border">{(items ?? []).map((n) => <Row key={n.id} n={n} />)}</ul>
       </Sheet>
+      {resident && <ResidentTabs />}
     </Screen>
   );
 }
