@@ -1,0 +1,8 @@
+{
+  "name": "Lighthouse Lekki - Gate Access Code",
+  "description": "Visitor access codes and estate management system for Lighthouse Estate Lekki.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
