@@ -165,7 +165,7 @@ export function HadithLine({ className }: { className?: string }) {
   }, []);
   return (
     <p key={i} className={cn("animate-in fade-in duration-700 text-center text-sm italic leading-relaxed text-muted-foreground", className)}>
-      “{hadith[i].text}”
+      “{hadith[i]?.text}”
     </p>
   );
 }

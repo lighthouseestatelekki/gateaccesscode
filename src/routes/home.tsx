@@ -14,8 +14,8 @@ function Home() {
   const nav = useNavigate();
   const [banner, setBanner] = useState(true);
   const [how, setHow] = useState(false);
-  const [h, setH] = useState(hadith[0]);
-  useEffect(() => setH(dailyHadith()), []);
+  const [h, setH] = useState(hadith[0]!);
+  useEffect(() => setH(dailyHadith()!), []);
 
   return (
     <Screen>

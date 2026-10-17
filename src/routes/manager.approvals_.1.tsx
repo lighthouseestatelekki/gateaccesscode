@@ -21,7 +21,7 @@ function Row({ k, v }: { k: string; v: string }) {
 function Detail() {
   const nav = useNavigate();
   const [confirm, setConfirm] = useState(false);
-  const p = pending[0];
+  const p = pending[0]!;
   return (
     <Screen>
       <Hero>
