@@ -2,28 +2,48 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { LogOut, Plus, Share2, X } from "lucide-react";
 import { BottomSheet, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
-import { codes, recentVisitors, resident } from "@/mock/data";
+import { supabase } from "@/lib/supabase";
+import { codeToUnit } from "@/lib/units";
+import { useResident } from "@/lib/useResident";
+import { codes, recentVisitors } from "@/mock/data";
 import { dailyHadith, HADITH_ATTRIBUTION, hadith } from "@/mock/hadith";
 
 export const title = "Home";
 
 function Home() {
   const nav = useNavigate();
+  const profile = useResident();
   const [banner, setBanner] = useState(true);
   const [how, setHow] = useState(false);
   const [h, setH] = useState(hadith[0]!);
   useEffect(() => setH(dailyHadith()!), []);
+
+  if (!profile) return null;
+
+  const firstName = profile.full_name.trim().split(/\s+/)[0] ?? "";
+  const unitLabel = codeToUnit(profile.house_unit);
 
   return (
     <Screen>
       <Hero className="pb-14">
         <div className="flex items-center justify-between">
           <Wordmark />
-          <Link to="/login" aria-label="Log out" className="-mr-2 flex size-11 items-center justify-center rounded-full text-deep-foreground/80 hover:bg-deep-mid"><LogOut className="size-5" /></Link>
+          <Link
+            to="/login"
+            onClick={async (e) => {
+              e.preventDefault();
+              await supabase.auth.signOut();
+              nav("/login");
+            }}
+            aria-label="Log out"
+            className="-mr-2 flex size-11 items-center justify-center rounded-full text-deep-foreground/80 hover:bg-deep-mid"
+          >
+            <LogOut className="size-5" />
+          </Link>
         </div>
         <p className="mt-8 text-base leading-snug text-deep-foreground/80">Assalam Alaekum Waramotullahi Wabarakatu.</p>
-        <h1 className="mt-1 text-4xl font-semibold">{resident.firstName}</h1>
-        <span className="mt-3 inline-flex rounded-full bg-gold px-3.5 py-1.5 text-sm font-bold text-deep-dark">House {resident.house} · {resident.unit}</span>
+        <h1 className="mt-1 text-4xl font-semibold">{firstName}</h1>
+        <span className="mt-3 inline-flex rounded-full bg-gold px-3.5 py-1.5 text-sm font-bold text-deep-dark">House {profile.house_number} · {unitLabel}</span>
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>

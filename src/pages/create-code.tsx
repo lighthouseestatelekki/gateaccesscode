@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button, Field, Hero, Screen, Sheet } from "@/components/lh/ui";
+import { useResident } from "@/lib/useResident";
 import { cn } from "@/lib/utils";
 
 export const title = "Create access code";
@@ -10,6 +11,7 @@ const OPTIONS = ["Next 2 hours", "Today", "Tomorrow", "This weekend", "Pick date
 
 function CreateCode() {
   const nav = useNavigate();
+  useResident();
   const [sel, setSel] = useState("Today");
   return (
     <Screen>

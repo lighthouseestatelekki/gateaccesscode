@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HadithLine, Hero, Keypad, PinBoxes, Screen, Sheet, UnitPicker, usePin, Button } from "@/components/lh/ui";
+import { supabase } from "@/lib/supabase";
+import { unitToCode } from "@/lib/units";
 import { UNITS } from "@/mock/data";
 
 export const title = "Resident log in";
@@ -78,10 +80,97 @@ function PickHouse({ onDone }: { onDone: (h: House) => void }) {
 /** Step 2: the house is the hero, PIN pad below. Signs in on the 6th digit. */
 function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () => void }) {
   const nav = useNavigate();
-  const pin = usePin(() => {
-    saveHouse(house);
-    nav("/home");
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState("");
+
+  const pin = usePin(async (thePin) => {
+    setChecking(true);
+    setError("");
+
+    const cleanedHouse = String(Number(house.number.trim()));
+    const unitCode = unitToCode(house.unit);
+    const email = `house${cleanedHouse}-${unitCode}@residents.lighthouseestate.app`;
+
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: thePin,
+    });
+
+    if (signInError) {
+      if (/invalid login credentials/i.test(signInError.message)) {
+        setError("House number or PIN is incorrect.");
+      } else {
+        setError(signInError.message);
+      }
+      pin.reset();
+      setChecking(false);
+      return;
+    }
+
+    const user = signInData?.user;
+    if (!user) {
+      await supabase.auth.signOut();
+      setError("We couldn't find your registration. Please contact the Estate Manager.");
+      pin.reset();
+      setChecking(false);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role,status,must_change_pin,full_name,house_number,house_unit")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile || profile.role !== "resident") {
+      await supabase.auth.signOut();
+      setError("We couldn't find your registration. Please contact the Estate Manager.");
+      pin.reset();
+      setChecking(false);
+      return;
+    }
+
+    if (profile.status === "pending") {
+      saveHouse(house);
+      await supabase.auth.signOut();
+      nav("/pending");
+      return;
+    }
+
+    if (profile.status === "declined") {
+      await supabase.auth.signOut();
+      setError("Your registration was not approved. Please contact the Estate Manager.");
+      pin.reset();
+      setChecking(false);
+      return;
+    }
+
+    if (profile.status === "suspended") {
+      await supabase.auth.signOut();
+      setError("Your account is suspended. Please contact the Estate Manager.");
+      pin.reset();
+      setChecking(false);
+      return;
+    }
+
+    if (profile.status === "active" && profile.must_change_pin) {
+      saveHouse(house);
+      nav("/change-pin");
+      return;
+    }
+
+    if (profile.status === "active") {
+      saveHouse(house);
+      nav("/home");
+      return;
+    }
+
+    await supabase.auth.signOut();
+    setError("We couldn't find your registration. Please contact the Estate Manager.");
+    pin.reset();
+    setChecking(false);
   });
+
   return (
     <Screen>
       <h1 className="sr-only">Resident log in</h1>
@@ -98,9 +187,21 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
         <span className="mt-3 inline-flex rounded-full bg-gold px-3.5 py-1.5 text-sm font-bold text-deep-dark">{house.unit}</span>
       </Hero>
       <Sheet className="flex flex-col gap-5">
-        <h2 className="text-center text-lg font-bold">Enter your PIN</h2>
+        <h2 className="text-center text-lg font-bold">{checking ? "Checking…" : "Enter your PIN"}</h2>
         <PinBoxes value={pin.value} />
-        <Keypad onDigit={pin.onDigit} onBack={pin.onBack} />
+        {error && <p role="alert" className="text-center text-sm font-medium text-destructive">{error}</p>}
+        <Keypad
+          onDigit={(d) => {
+            if (checking) return;
+            setError("");
+            if (pin.value.length === 5) setChecking(true);
+            pin.onDigit(d);
+          }}
+          onBack={() => {
+            if (checking) return;
+            pin.onBack();
+          }}
+        />
         <p className="text-center text-sm text-text-2">Signs you in on the 6th digit · Forgot your PIN? Ask the Estate Manager.</p>
         <HadithLine className="pt-1" />
       </Sheet>
@@ -109,7 +210,37 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
 }
 
 function Login() {
+  const nav = useNavigate();
   const [house, setHouse] = useState<House | null>(() => loadHouse());
+
+  useEffect(() => {
+    let active = true;
+    async function checkSession() {
+      if (!supabase.auth?.getSession) return;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return;
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role,status,must_change_pin,full_name,house_number,house_unit")
+        .eq("id", user.id)
+        .single();
+
+      if (!active) return;
+
+      if (!error && profile && profile.role === "resident" && profile.status === "active") {
+        nav(profile.must_change_pin ? "/change-pin" : "/home", { replace: true });
+      } else {
+        await supabase.auth.signOut();
+      }
+    }
+    checkSession();
+    return () => {
+      active = false;
+    };
+  }, [nav]);
+
   if (!house) return <PickHouse onDone={setHouse} />;
   return <EnterPin house={house} onChangeHouse={() => { saveHouse(null); setHouse(null); }} />;
 }

@@ -2,10 +2,12 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Copy, Share2 } from "lucide-react";
 import { Button, btnClass, HadithLine, Hero, Screen, Sheet } from "@/components/lh/ui";
+import { useResident } from "@/lib/useResident";
 
 export const title = "Code created";
 
 function CodeCreated() {
+  useResident();
   const [copied, setCopied] = useState(false);
   return (
     <Screen>
