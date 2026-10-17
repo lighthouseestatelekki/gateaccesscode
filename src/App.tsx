@@ -9,6 +9,7 @@ import * as GuardVerdictDenied from "@/pages/guard-verdict-denied";
 import * as GuardVerdictExpired from "@/pages/guard-verdict-expired";
 import * as GuardVerify from "@/pages/guard-verify";
 import * as Hadith from "@/pages/hadith";
+import * as Health from "@/pages/health";
 import * as Home from "@/pages/home";
 import * as Login from "@/pages/login";
 import * as ManagerApprovals from "@/pages/manager-approvals";
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/guard/verdict/expired" element={<Page title={GuardVerdictExpired.title}><GuardVerdictExpired.default /></Page>} />
         <Route path="/guard/verify" element={<Page title={GuardVerify.title}><GuardVerify.default /></Page>} />
         <Route path="/hadith" element={<Page title={Hadith.title}><Hadith.default /></Page>} />
+        <Route path="/health" element={<Page title={Health.title}><Health.default /></Page>} />
         <Route path="/home" element={<Page title={Home.title}><Home.default /></Page>} />
         <Route path="/login" element={<Page title={Login.title}><Login.default /></Page>} />
         <Route path="/manager/approvals" element={<Page title={ManagerApprovals.title}><ManagerApprovals.default /></Page>} />

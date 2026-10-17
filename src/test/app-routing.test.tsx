@@ -6,11 +6,11 @@ import App from "@/App";
 describe("App routing", () => {
   it("sends / to the resident login page instead of a blank screen", () => {
     render(<MemoryRouter initialEntries={["/"]}><App /></MemoryRouter>);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/welcome back/i);
+    expect(screen.getByText(/which house/i)).toHaveTextContent(/which house/i);
   });
 
   it("falls back to login for an unknown address", () => {
     render(<MemoryRouter initialEntries={["/no-such-page"]}><App /></MemoryRouter>);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(/welcome back/i);
+    expect(screen.getByText(/which house/i)).toHaveTextContent(/which house/i);
   });
 });

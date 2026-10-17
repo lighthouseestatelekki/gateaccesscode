@@ -23,11 +23,11 @@ export function Wordmark({ className }: { className?: string }) {
 }
 
 export function Hero({ children, className }: { children: ReactNode; className?: string }) {
-  return <header className={cn("hero px-5 pb-12", className)}>{children}</header>;
+  return <header className={cn("hero px-5 pb-14", className)}>{children}</header>;
 }
 
 export function Sheet({ children, className }: { children: ReactNode; className?: string }) {
-  return <main className={cn("sheet flex-1 px-5 pt-7", className)}>{children}</main>;
+  return <main className={cn("sheet flex-1 px-5 pt-3", className)}><div aria-hidden className="mx-auto mb-5 h-1.5 w-10 rounded-full bg-border" />{children}</main>;
 }
 
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "gold" | "secondary" | "ghost" | "danger" | "outline" };
@@ -50,7 +50,7 @@ export function Field({ label, tone = "light", ...p }: { label: string; tone?: "
   return (
     <label className="block">
       <span className={cn("mb-1.5 block text-sm font-medium", tone === "dark" ? "text-deep-foreground/70" : "text-text-2")}>{label}</span>
-      <input {...p} className={cn("h-13 min-h-12 w-full rounded-sm border px-4 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/25", tone === "dark" ? "border-deep-foreground/20 bg-deep-mid text-deep-foreground placeholder:text-deep-foreground/40" : "border-border bg-card text-foreground")} />
+      <input {...p} className={cn("h-13 min-h-12 w-full rounded-2xl border-[1.5px] px-4 text-base outline-none focus:border-primary focus:ring-4 focus:ring-primary/15", tone === "dark" ? "border-deep-foreground/20 bg-deep-mid text-deep-foreground placeholder:text-deep-foreground/40" : "border-border bg-card text-foreground")} />
     </label>
   );
 }
@@ -60,7 +60,7 @@ export function SelectField({ label, options }: { label: string; options: readon
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-text-2">{label}</span>
       <div className="relative">
-        <select className="h-12 w-full appearance-none rounded-sm border border-border bg-card px-4 text-base text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/25">
+        <select className="h-13 min-h-12 w-full appearance-none rounded-2xl border-[1.5px] border-border bg-card px-4 text-base text-foreground outline-none focus:border-primary focus:ring-4 focus:ring-primary/15">
           {options.map((o) => <option key={o}>{o}</option>)}
         </select>
         <ChevronDown className="pointer-events-none absolute right-3 top-3.5 size-5 text-muted-foreground" />
@@ -71,23 +71,18 @@ export function SelectField({ label, options }: { label: string; options: readon
 
 export function PinBoxes({ value, size = "md", tone = "light" }: { value: string; size?: "md" | "lg"; tone?: "light" | "dark" }) {
   return (
-    <div className="flex justify-center gap-2" aria-label={`${value.length} of 6 digits entered`}>
+    <div className="flex h-6 items-center justify-center gap-4" aria-label={`${value.length} of 6 digits entered`}>
       {Array.from({ length: 6 }).map((_, i) => {
         const filled = i < value.length;
-        const active = i === value.length;
         return (
-          <div
+          <span
             key={i}
             className={cn(
-              "flex items-center justify-center rounded-full border-2 transition-all",
-              size === "lg" ? "size-13 min-h-12 min-w-12" : "size-11",
-              tone === "dark" ? "border-deep-foreground/25" : "border-border bg-mint-lightest",
-              filled && (tone === "dark" ? "border-primary bg-primary" : "border-deep bg-deep"),
-              active && "border-primary",
+              "rounded-full transition-all duration-150",
+              size === "lg" ? "size-4.5" : "size-3.5",
+              filled ? "scale-125 bg-primary" : tone === "dark" ? "bg-deep-foreground/25" : "bg-border",
             )}
-          >
-            {filled && <span className={cn("rounded-full", size === "lg" ? "size-3.5" : "size-3", tone === "dark" ? "bg-white" : "bg-gold")} />}
-          </div>
+          />
         );
       })}
     </div>
@@ -96,18 +91,18 @@ export function PinBoxes({ value, size = "md", tone = "light" }: { value: string
 
 export function Keypad({ onDigit, onBack, tone = "light", big }: { onDigit: (d: string) => void; onBack: () => void; tone?: "light" | "dark"; big?: boolean }) {
   const key = cn(
-    "flex items-center justify-center rounded-lg font-display font-medium transition-colors active:scale-95",
+    "flex items-center justify-center rounded-[18px] font-display font-bold transition-colors active:scale-95",
     big ? "h-18 min-h-16 text-3xl" : "h-14 text-2xl",
-    tone === "dark" ? "bg-deep-mid text-deep-foreground active:bg-primary" : "border-[1.5px] border-deep/15 bg-card text-deep font-semibold shadow-sm active:border-primary active:bg-primary active:text-primary-foreground",
+    tone === "dark" ? "bg-deep-mid text-deep-foreground active:bg-primary" : "bg-muted text-deep active:bg-primary active:text-primary-foreground",
   );
   return (
-    <div className="grid grid-cols-3 gap-2.5">
+    <div className="grid grid-cols-3 gap-2">
       {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
         <button key={d} type="button" className={key} onClick={() => onDigit(d)}>{d}</button>
       ))}
       <span />
       <button type="button" className={key} onClick={() => onDigit("0")}>0</button>
-      <button type="button" aria-label="Delete" className={cn(key, "border-transparent bg-transparent shadow-none")} onClick={onBack}>
+      <button type="button" aria-label="Delete" className={cn(key, "bg-transparent")} onClick={onBack}>
         <Delete className="size-7" />
       </button>
     </div>
@@ -128,6 +123,25 @@ export function usePin(onComplete?: (v: string) => void) {
       }),
     onBack: () => setValue((v) => v.slice(0, -1)),
   };
+}
+
+export function UnitPicker({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: readonly string[] }) {
+  return (
+    <div role="radiogroup" aria-label="Unit" className="flex flex-wrap gap-2">
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          role="radio"
+          aria-checked={value === o}
+          onClick={() => onChange(o)}
+          className={cn("min-h-11 rounded-full px-4 text-sm font-semibold transition-colors", value === o ? "bg-deep text-deep-foreground" : "bg-mint-lightest text-text-2")}
+        >
+          {o}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export function PinEntry({ label, hint }: { label: string; hint?: string }) {
@@ -189,12 +203,12 @@ export function ManagerTabs() {
     { to: "/manager/guards", label: "Guards" },
   ] as const;
   return (
-    <nav className="sticky bottom-0 mt-auto grid grid-cols-3 border-t border-deep-mid bg-deep-dark safe-bottom pt-1">
+    <nav className="sticky bottom-0 mt-auto grid grid-cols-3 border-t border-border bg-card/95 backdrop-blur safe-bottom pt-1">
       {tabs.map((t) => {
         const on = path.startsWith(t.to);
         return (
-          <Link key={t.to} to={t.to} className={cn("flex min-h-14 flex-col items-center justify-center text-sm font-semibold", on ? "text-white" : "text-deep-foreground/55")}>
-            <span className={cn("mb-1 h-1 w-8 rounded-full", on ? "bg-gold" : "bg-transparent")} />
+          <Link key={t.to} to={t.to} className={cn("flex min-h-14 flex-col items-center justify-center text-sm font-semibold", on ? "text-deep" : "text-muted-foreground")}>
+            <span className={cn("mb-1 h-1 w-8 rounded-full", on ? "bg-primary" : "bg-transparent")} />
             {t.label}
           </Link>
         );

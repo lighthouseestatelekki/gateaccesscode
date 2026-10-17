@@ -134,48 +134,12 @@
 @utility hero {
   background-color: var(--deep);
   background-image:
-    radial-gradient(120% 70% at 85% 0%, color-mix(in oklab, var(--primary) 45%, transparent), transparent 60%),
-    radial-gradient(60% 50% at 0% 100%, color-mix(in oklab, var(--deep-mid) 90%, transparent), transparent 70%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.06'%3E%3Cpath d='M24 2 L46 24 L24 46 L2 24 Z'/%3E%3Cpath d='M24 12 L36 24 L24 36 L12 24 Z'/%3E%3C/g%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.13' stroke-width='1.2'%3E%3Crect x='16' y='16' width='28' height='28'/%3E%3Crect x='16' y='16' width='28' height='28' transform='rotate(45 30 30)'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(160deg, var(--primary) 0%, var(--deep-mid) 58%, var(--deep-dark) 100%);
+  background-size: 60px 60px, cover;
   color: var(--deep-foreground);
   padding-top: max(env(safe-area-inset-top), 1.25rem);
   position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  /* lighthouse light beam, sweeping slowly */
-  &::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: -40%;
-    right: -60%;
-    width: 170%;
-    height: 190%;
-    background: conic-gradient(from 195deg at 86% 22%, transparent 0deg, color-mix(in oklab, var(--primary) 42%, transparent) 13deg, transparent 32deg);
-    transform-origin: 86% 22%;
-    animation: beam 14s ease-in-out infinite alternate;
-    pointer-events: none;
-  }
-  /* faint lighthouse silhouette, cropped at the right edge */
-  &::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    right: -34px;
-    bottom: -6px;
-    width: 190px;
-    height: 190px;
-    opacity: 0.07;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M10 24h6l-1.2-13h-3.6z'/%3E%3Crect x='9.5' y='6' width='7' height='4' rx='1'/%3E%3Cpath d='M13 2l3 4h-6z'/%3E%3C/g%3E%3C/svg%3E") no-repeat center / contain;
-    pointer-events: none;
-  }
-}
-@keyframes beam {
-  from { transform: rotate(-7deg); }
-  to { transform: rotate(9deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero::before { animation: none; }
 }
 @utility deep-card {
   background-color: var(--deep);
@@ -186,8 +150,8 @@
 }
 @utility sheet {
   background: var(--card);
-  border-radius: 26px 26px 0 0;
-  margin-top: -26px;
+  border-radius: 30px 30px 0 0;
+  margin-top: -30px;
   position: relative;
   box-shadow: 0 -12px 30px -18px color-mix(in oklab, var(--deep-dark) 50%, transparent);
   padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);

@@ -23,7 +23,7 @@ function Home() {
         </div>
         <p className="mt-8 text-base leading-snug text-deep-foreground/80">Assalam Alaekum Waramotullahi Wabarakatu.</p>
         <h1 className="mt-1 text-4xl font-semibold">{resident.firstName}</h1>
-        <p className="mt-1 text-sm text-deep-foreground/60">House {resident.house} · {resident.unit}</p>
+        <span className="mt-3 inline-flex rounded-full bg-gold px-3.5 py-1.5 text-sm font-bold text-deep-dark">House {resident.house} · {resident.unit}</span>
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
