@@ -65,8 +65,8 @@
   --color-gold-text: var(--gold-text);
   --color-text-2: var(--text-2);
   --color-destructive-light: var(--destructive-light);
-  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Noto Naskh Arabic", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Noto Naskh Arabic", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -150,3 +150,7 @@
 @utility safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 1rem); }
 @utility safe-top { padding-top: max(env(safe-area-inset-top), 1rem); }
 @utility code-digits { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: 0.12em; }
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}

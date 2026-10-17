@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Button, Field, Hero, meta, PinEntry, Screen, SelectField, Sheet } from "@/components/lh/ui";
+import { useState } from "react";
+import { Button, Field, Hero, Keypad, meta, PinBoxes, Screen, SelectField, Sheet, usePin } from "@/components/lh/ui";
 import { UNITS } from "@/mock/data";
 
 export const Route = createFileRoute("/register")({
@@ -10,6 +11,10 @@ export const Route = createFileRoute("/register")({
 
 function Register() {
   const nav = useNavigate();
+  const [step, setStep] = useState(1);
+  const pin = usePin();
+  const confirmation = usePin();
+  const mismatch = pin.value.length === 6 && confirmation.value.length === 6 && pin.value !== confirmation.value;
   return (
     <Screen>
       <Hero>
@@ -18,25 +23,51 @@ function Register() {
         <p className="mt-1 text-deep-foreground/70">Your details are checked by the Estate Manager.</p>
       </Hero>
       <Sheet className="space-y-8">
-        <section className="space-y-4">
+        <div aria-label="Registration progress" className="space-y-3">
+          <p aria-live="polite" className="text-sm font-semibold text-text-2">Step {step} of 3</p>
+          <div className="flex gap-2" aria-hidden="true">
+            {[1, 2, 3].map((n) => <span key={n} className={`h-1.5 flex-1 rounded-full ${n <= step ? "bg-primary" : "bg-muted"}`} />)}
+          </div>
+        </div>
+        <section hidden={step !== 1} className="space-y-4">
           <h2 className="text-lg font-semibold">Your details</h2>
           <Field label="Full name" autoComplete="name" />
           <Field label="Phone" type="tel" inputMode="tel" />
-          <Field label="Email" type="email" />
+          <Field label="Email" type="email" inputMode="email" />
           <Field label="House number" inputMode="numeric" />
           <SelectField label="Unit" options={UNITS} />
         </section>
-        <section className="space-y-4">
+        <section hidden={step !== 2} className="space-y-4">
           <h2 className="text-lg font-semibold">Next of kin</h2>
           <Field label="Name" />
           <Field label="Phone" type="tel" inputMode="tel" />
           <Field label="Relationship" />
         </section>
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Choose a PIN</h2>
-          <PinEntry label="Enter 6 digits" hint="6 digits. Avoid easy ones like 123456 or 111111." />
+        <section hidden={step !== 3} className="space-y-6">
+          <h2 className="text-lg font-semibold">Choose your PIN</h2>
+          <div role="group" aria-label="Enter 6 digits" className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-text-2">Enter 6 digits</p>
+              <p className="mt-1 text-sm text-muted-foreground">6 digits. Avoid easy ones like 123456 or 111111.</p>
+            </div>
+            <PinBoxes value={pin.value} />
+            <Keypad onDigit={pin.onDigit} onBack={pin.onBack} />
+          </div>
+          <div role="group" aria-label="Confirm your PIN" className="space-y-4">
+            <p className="text-sm font-medium text-text-2">Confirm your PIN</p>
+            <PinBoxes value={confirmation.value} />
+            <Keypad onDigit={confirmation.onDigit} onBack={confirmation.onBack} />
+          </div>
+          {mismatch && <p role="alert" className="text-sm font-medium text-destructive">PINs do not match.</p>}
         </section>
-        <Button onClick={() => nav({ to: "/pending" })}>Submit registration</Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => step === 1 ? nav({ to: "/login" }) : setStep(step - 1)}>Back</Button>
+          {step < 3 ? (
+            <Button onClick={() => setStep(step + 1)}>Continue</Button>
+          ) : (
+            <Button disabled={pin.value.length !== 6 || confirmation.value.length !== 6 || mismatch} onClick={() => nav({ to: "/pending" })}>Submit registration</Button>
+          )}
+        </div>
       </Sheet>
     </Screen>
   );

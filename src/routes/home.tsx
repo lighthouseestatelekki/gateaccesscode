@@ -50,7 +50,7 @@ function Home() {
 
         <section>
           <h2 className="mb-3 text-lg font-semibold">Recent visitors</h2>
-          <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+          <div className="scrollbar-hidden -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
             {recentVisitors.slice(0, 4).map((n) => (
               <button key={n} onClick={() => nav({ to: "/create-code" })} className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-4 text-sm font-medium">
                 <span className="flex size-9 items-center justify-center rounded-full bg-mint-light font-display font-semibold text-deep">{n[0]}</span>{n}

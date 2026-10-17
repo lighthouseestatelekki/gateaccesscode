@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep registration steps and PIN confirmation in the existing register route, retaining field values during step navigation; this preserves the mock-only prototype flow.
+- Use the shared HadithLine for attribution and global font fallbacks for Arabic glyphs so the affected screens stay consistent.
