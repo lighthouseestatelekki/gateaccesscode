@@ -4,6 +4,7 @@ import { Plus, ShieldAlert } from "lucide-react";
 import { CodeTicket, Initial } from "@/components/lh/CodeTicket";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { SetupCard } from "@/components/lh/SetupCard";
+import { PrayerCard } from "@/components/lh/PrayerCard";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, Wordmark } from "@/components/lh/ui";
 import { computeExpiry, shareAccessCode } from "@/lib/expiry";
 import { supabase } from "@/lib/supabase";
@@ -174,6 +175,8 @@ function Home() {
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
 
         <SetupCard userId={me?.id} hasCodes={(counts?.total ?? codes.length) > 0} />
+
+        <PrayerCard />
 
         {recentVisitors.length > 0 && (
           <section>

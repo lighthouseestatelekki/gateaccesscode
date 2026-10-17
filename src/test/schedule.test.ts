@@ -38,3 +38,20 @@ describe("smart defaults", () => {
     expect(defaultExpiry(new Date("2026-10-17T19:00:00Z"))).toBe("Tomorrow");
   });
 });
+
+import { clock, hijriDate, nextPrayer, prayerTimes } from "@/lib/prayer";
+
+describe("prayer times for Lekki", () => {
+  it("match a published Lagos timetable (IslamicFinder, 17 Oct 2026) to within 2 minutes", () => {
+    const t = prayerTimes(2026, 10, 17).times;
+    const mins = (d: Date) => { const s = new Date(d.getTime() + 3600_000); return s.getUTCHours() * 60 + s.getUTCMinutes(); };
+    const ref = { Fajr: 5 * 60 + 17, Sunrise: 6 * 60 + 32, Dhuhr: 12 * 60 + 33, Asr: 15 * 60 + 52, Maghrib: 18 * 60 + 32, Isha: 19 * 60 + 39 };
+    for (const [k, v] of Object.entries(ref)) expect(Math.abs(mins(t[k as keyof typeof t]) - v)).toBeLessThanOrEqual(2);
+    expect(clock(t.Dhuhr)).toBe("12:33 PM");
+  });
+  it("rolls over to tomorrow's Fajr after Isha, and gives the Hijri date", () => {
+    expect(nextPrayer(new Date("2026-10-17T21:00:00Z")).name).toBe("Fajr");
+    expect(nextPrayer(new Date("2026-10-17T12:00:00Z")).name).toBe("Asr");
+    expect(hijriDate(new Date("2026-10-17T12:00:00Z"))).toBe("6 Jumada al-Awwal 1448 AH");
+  });
+});

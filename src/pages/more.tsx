@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { BarChart3, BookOpen, ChevronRight, KeyRound, LogOut, ShieldAlert, Smartphone } from "lucide-react";
+import { BarChart3, BookOpen, ChevronRight, KeyRound, LogOut, ShieldAlert, Smartphone, Wrench } from "lucide-react";
 import { BottomSheet, Hero, Screen, Sheet } from "@/components/lh/ui";
 import { ResidentTabs } from "@/components/lh/nav";
 import { isInstalled, promptInstall } from "@/lib/install";
@@ -29,6 +29,7 @@ function More() {
       </Hero>
       <Sheet className="space-y-4 pb-6">
         <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+          <li><Link to="/fixit" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><Wrench className="size-5" /></span><span className="flex-1">Fix-It requests</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/insights" className={row}><span className={`${ico} bg-mint-light text-deep`}><BarChart3 className="size-5" /></span><span className="flex-1">Insights</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/hadith" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><BookOpen className="size-5" /></span><span className="flex-1">Hadith</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/change-pin" className={row}><span className={`${ico} bg-mint-light text-deep`}><KeyRound className="size-5" /></span><span className="flex-1">Change my PIN</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>

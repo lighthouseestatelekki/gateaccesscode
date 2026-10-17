@@ -9,11 +9,11 @@ self.addEventListener("push", (event) => {
   try {
     d = event.data ? event.data.json() : {};
   } catch (e) {
-    d = { title: "Lighthouse Lekki", body: event.data ? event.data.text() : "" };
+    d = { title: "Light House Estate", body: event.data ? event.data.text() : "" };
   }
   const sos = d.kind === "sos";
   event.waitUntil(
-    self.registration.showNotification(d.title || "Lighthouse Lekki", {
+    self.registration.showNotification(d.title || "Light House Estate", {
       body: d.body || "",
       icon: "/icon-192.png",
       badge: "/icon-192.png",

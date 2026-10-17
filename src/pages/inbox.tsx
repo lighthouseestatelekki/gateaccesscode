@@ -1,7 +1,7 @@
 import { ResidentTabs } from "@/components/lh/nav";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
-import { ArrowLeft, Bell, DoorOpen, LogIn, Megaphone, ShieldAlert, ShieldCheck, XCircle } from "lucide-react";
+import { ArrowLeft, Bell, DoorOpen, LogIn, Megaphone, ShieldAlert, ShieldCheck, Wrench, XCircle } from "lucide-react";
 import { Hero, Screen, Sheet } from "@/components/lh/ui";
 import { useInbox, type Notice } from "@/lib/useInbox";
 import { useMe } from "@/lib/useMe";
@@ -12,7 +12,7 @@ export const title = "Inbox";
 
 const icons: Record<string, typeof Bell> = {
   announcement: Megaphone, code_in: LogIn, code_out: DoorOpen, code_refused: XCircle,
-  code_switched_off: XCircle, approved: ShieldCheck, sos: ShieldAlert, security: ShieldAlert,
+  code_switched_off: XCircle, approved: ShieldCheck, sos: ShieldAlert, security: ShieldAlert, fixit: Wrench,
 };
 const tint: Record<string, string> = {
   announcement: "bg-gold-light text-gold-text", sos: "bg-destructive-light text-destructive",

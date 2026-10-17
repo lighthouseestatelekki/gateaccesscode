@@ -333,6 +333,34 @@ export const AR: Record<string, string> = {
   "We'll alert you when you're approved": "سننبّهك عند الموافقة",
   "Your progress": "تقدّمك",
   "While you wait: install the app so it's one tap away when you're approved.": "أثناء الانتظار: ثبّت التطبيق ليكون على بُعد لمسة عند الموافقة.",
+  "A new version of the app is ready": "إصدار جديد من التطبيق جاهز",
+  "Refresh": "تحديث",
+  "Later": "لاحقًا",
+  "Next prayer": "الصلاة القادمة",
+  "Prayer times": "أوقات الصلاة",
+  "Today in Lekki": "اليوم في ليكي",
+  "Fajr": "الفجر", "Dhuhr": "الظهر", "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء",
+  "Times for Lekki. Your mosque's timetable may differ by a minute or two.": "الأوقات لمنطقة ليكي. قد يختلف جدول مسجدك بدقيقة أو دقيقتين.",
+  // ---- Fix-It ----
+  "Fix-It": "الإصلاحات",
+  "Fix-It requests": "طلبات الإصلاح",
+  "Report a problem in the estate. Follow it until it's fixed.": "أبلغ عن مشكلة في العقار، وتابعها حتى تُصلَح.",
+  "Report a problem": "الإبلاغ عن مشكلة",
+  "What is it about?": "عمّ تتعلق؟",
+  "Streetlight": "إنارة الشارع", "Drainage": "الصرف", "Water": "المياه", "Power": "الكهرباء", "Road": "الطريق", "Waste": "النفايات",
+  "What's wrong?": "ما المشكلة؟",
+  "e.g. The streetlight has been off for 3 nights": "مثال: إنارة الشارع مطفأة منذ 3 ليالٍ",
+  "Where?": "أين؟",
+  "Photo": "صورة",
+  "Your photo": "صورتك",
+  "Remove photo": "إزالة الصورة",
+  "Send to Estate Manager": "إرسال إلى مدير العقار",
+  "Please describe the problem in a few words.": "يرجى وصف المشكلة بكلمات قليلة.",
+  "Nothing reported yet": "لا توجد بلاغات بعد",
+  "Streetlight out? Blocked drain? Tell the Estate Manager here.": "إنارة معطلة؟ صرف مسدود؟ أخبر مدير العقار هنا.",
+  "Fixed": "تم الإصلاح",
+  "In progress": "قيد التنفيذ",
+  "Estate Manager:": "مدير العقار:",
   // ---- menu bar ----
   "Home": "الرئيسية",
   "Codes": "الرموز",
@@ -356,11 +384,25 @@ export const AR_WORDS: Record<string, string> = {
 };
 
 const n = (x: string) => x;
+const HIJRI: Record<string, string> = {
+  Muharram: "محرم", Safar: "صفر", "Rabi al-Awwal": "ربيع الأول", "Rabi al-Thani": "ربيع الآخر", "Jumada al-Awwal": "جمادى الأولى", "Jumada al-Thani": "جمادى الآخرة",
+  Rajab: "رجب", Shaban: "شعبان", Ramadan: "رمضان", Shawwal: "شوال", "Dhul Qadah": "ذو القعدة", "Dhul Hijjah": "ذو الحجة",
+};
 const day = (x: string) => x.replace(/[A-Za-z]+/g, (w) => AR_WORDS[w] ?? w);
 
 /** Sentences that contain a number or a name. */
 export const AR_PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^([A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2}) to ([A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2})$/, (m) => `${day(m[1]!)} إلى ${day(m[2]!)}`],
+  [/^Thank you\. Request #(\d+) was sent to the Estate Manager\. You'll get an alert as it moves along\.$/, (m) => `شكرًا لك. أُرسل الطلب رقم ${m[1]} إلى مدير العقار، وستصلك تنبيهات بتقدّمه.`],
+  [/^Reported (.+)$/, (m) => `أُبلغ عنه ${day(m[1]!)}`],
+  [/^Near House (\d+)$/, (m) => `قرب منزل ${m[1]}`],
+  [/^Fix-It #(\d+) is being worked on$/, (m) => `يجري العمل على طلب الإصلاح رقم ${m[1]}`],
+  [/^Fix-It #(\d+) is done$/, (m) => `اكتمل طلب الإصلاح رقم ${m[1]}`],
+  [/^Fix-It #(\d+) was reopened$/, (m) => `أُعيد فتح طلب الإصلاح رقم ${m[1]}`],
+  [/^in (\d+) min$/, (m) => `بعد ${m[1]} دقيقة`],
+  [/^in (\d+) hr$/, (m) => `بعد ${m[1]} ساعة`],
+  [/^in (\d+) hr (\d+) min$/, (m) => `بعد ${m[1]} ساعة و${m[2]} دقيقة`],
+  [/^(\d+) (Muharram|Safar|Rabi al-Awwal|Rabi al-Thani|Jumada al-Awwal|Jumada al-Thani|Rajab|Shaban|Ramadan|Shawwal|Dhul Qadah|Dhul Hijjah) (\d+) AH$/, (m) => `${m[1]} ${HIJRI[m[2]!]} ${m[3]} هـ`],
   [/^(\d+) days left$/, (m) => `متبقٍ ${n(m[1]!)} يومًا`],
   [/^(\d+) hours? left$/, (m) => `متبقٍ ${n(m[1]!)} ساعة`],
   [/^(\d+) min left$/, (m) => `متبقٍ ${n(m[1]!)} دقيقة`],
