@@ -37,10 +37,7 @@ export default function Page() {
   const direction = (state.direction ?? "in").toUpperCase();
   const unitLabel = codeToUnit(state.unit ?? "");
   const rawType = state.type ?? "guest";
-  const typeLabel =
-    rawType.toLowerCase() === "guest"
-      ? "Guest"
-      : rawType.charAt(0).toUpperCase() + rawType.slice(1);
+  const typeLabel = ({ guest: "Guest", long_stay: "Long stay", employee: "Employee" } as Record<string, string>)[rawType.toLowerCase()] ?? rawType;
 
   return (
     <Verdict tone="access" title="ACCESS">

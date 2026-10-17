@@ -4,7 +4,7 @@ import { Bell, LogOut, Plus, Share2, ShieldAlert, X } from "lucide-react";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { AlertsCard } from "@/components/lh/AlertsCard";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
-import { computeExpiry, formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
+import { computeExpiry, formatCode, formatUntil, formatValidity, shareAccessCode } from "@/lib/expiry";
 import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
@@ -20,6 +20,8 @@ type AccessCodeRow = {
   code: string;
   holder_name: string;
   valid_to: string;
+  valid_from: string;
+  type: string;
   active: boolean;
   used_at: string | null;
   created_at: string;
@@ -39,6 +41,7 @@ function Home() {
   const [how, setHow] = useState(false);
   const [h, setH] = useState(hadith[0]!);
   const [codes, setCodes] = useState<AccessCodeRow[]>([]);
+  const [counts, setCounts] = useState<{ active: number; used: number; expired: number; cancelled: number; total: number } | null>(null);
 
   const [cancelTarget, setCancelTarget] = useState<AccessCodeRow | null>(null);
   const [cancelling, setCancelling] = useState(false);
@@ -55,10 +58,12 @@ function Home() {
   const loadCodes = useCallback(async () => {
     const { data } = await supabase
       .from("access_codes")
-      .select("id,code,holder_name,valid_to,active,used_at,created_at")
+      .select("id,code,holder_name,valid_to,valid_from,type,active,used_at,created_at")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(5);
     if (data) setCodes(data as AccessCodeRow[]);
+    const { data: c } = await supabase.rpc("my_code_counts");
+    if (c) setCounts(c);
   }, []);
 
   const me = useMe();
@@ -210,7 +215,20 @@ function Home() {
         )}
 
         <section>
-          <h2 className="mb-3 text-lg font-semibold">My codes</h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">My codes</h2>
+            {counts && counts.total > 0 && <Link to="/codes" className="inline-flex min-h-11 items-center text-sm font-bold text-primary">See all</Link>}
+          </div>
+          {counts && counts.total > 0 && (
+            <div className="mb-3 grid grid-cols-3 gap-2">
+              {([["Active", counts.active, "bg-mint-light text-deep"], ["Used", counts.used, "bg-muted text-text-2"], ["Total", counts.total, "bg-gold-light text-gold-text"]] as const).map(([l, n, c]) => (
+                <Link key={l} to="/codes" state={{ status: l === "Total" ? "All" : l }} className={`rounded-lg px-3 py-2.5 ${c}`}>
+                  <span className="block font-display text-2xl font-bold">{n}</span>
+                  <span className="block text-xs font-semibold">{l}</span>
+                </Link>
+              ))}
+            </div>
+          )}
           {codes.length === 0 ? (
             <p className="rounded-lg bg-muted p-6 text-center text-text-2">No codes yet.</p>
           ) : (
@@ -223,8 +241,8 @@ function Home() {
                       <p className={`code-digits text-3xl font-bold ${status === "Active" ? "text-deep" : "text-muted-foreground"}`}>{formatCode(c.code)}</p>
                       <StatusChip status={status} />
                     </div>
-                    <p className="mt-1 font-medium">{c.holder_name}</p>
-                    <p className="text-sm text-muted-foreground">{formatUntil(c.valid_to, now)}</p>
+                    <p className="mt-1 font-medium">{c.holder_name}{c.type === "long_stay" && <span className="ml-2 rounded-full bg-gold-light px-2 py-0.5 align-middle text-xs font-bold text-gold-text">Long stay</span>}</p>
+                    <p className="text-sm text-muted-foreground">{formatValidity(c, now)}</p>
                     <div className="mt-3 flex gap-2">
                       {status === "Active" ? (
                         <>
@@ -236,6 +254,8 @@ function Home() {
                                 validTo: c.valid_to,
                                 houseNumber: profile.house_number,
                                 unitLabel,
+                                type: c.type,
+                                validFrom: c.valid_from,
                               })
                             }
                             className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep"

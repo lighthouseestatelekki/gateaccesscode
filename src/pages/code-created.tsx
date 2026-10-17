@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Copy, Share2 } from "lucide-react";
 import { Button, btnClass, HadithLine, Hero, Screen, Sheet } from "@/components/lh/ui";
-import { formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
+import { formatCode, formatValidity, shareAccessCode } from "@/lib/expiry";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
 
@@ -12,6 +12,8 @@ type CodeCreatedState = {
   code?: string;
   holder_name?: string;
   valid_to?: string;
+  valid_from?: string;
+  type?: string;
 };
 
 function CodeCreated() {
@@ -37,7 +39,8 @@ function CodeCreated() {
         <p className="pt-6 text-sm font-semibold uppercase tracking-widest text-deep-foreground/60">Access code</p>
         <p className="code-digits mt-3 text-6xl font-bold text-gold">{formatCode(state!.code!)}</p>
         <p className="mt-4 text-lg font-semibold">{state!.holder_name}</p>
-        <p className="text-sm text-deep-foreground/70">{formatUntil(state!.valid_to!)}</p>
+        <p className="text-sm text-deep-foreground/70">{formatValidity({ type: state!.type, valid_from: state!.valid_from, valid_to: state!.valid_to! })}</p>
+        {state!.type === "long_stay" && <span className="mt-2 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider">Long stay · come and go</span>}
       </Hero>
       <Sheet className="space-y-3">
         <div className="pb-3 text-center">
@@ -52,6 +55,8 @@ function CodeCreated() {
               validTo: state!.valid_to!,
               houseNumber: profile.house_number,
               unitLabel: codeToUnit(profile.house_unit),
+              type: state!.type,
+              validFrom: state!.valid_from,
             });
           }}
         >

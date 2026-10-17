@@ -94,15 +94,53 @@ export function formatCode(code: string): string {
   return clean.length === 6 ? `${clean.slice(0, 3)} ${clean.slice(3)}` : code;
 }
 
+/** "Sat 25 Oct" in Lagos time. */
+export function lagosDay(value: Date | string): string {
+  const d = toLagosShifted(typeof value === "string" ? new Date(value) : value);
+  return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}
+
+/** Today's date in Lagos as "YYYY-MM-DD" (for date inputs), optionally shifted by whole days. */
+export function lagosDateInput(now: Date = new Date(), addDays = 0): string {
+  const d = toLagosShifted(new Date(now.getTime() + addDays * DAY_MS));
+  return d.toISOString().slice(0, 10);
+}
+
+/** Start of a "YYYY-MM-DD" day in Lagos (00:00), or `now` if that day is today. */
+export function lagosStartOf(dateStr: string, now: Date = new Date()): Date {
+  const start = new Date(`${dateStr}T00:00:00+01:00`);
+  return start.getTime() < now.getTime() ? now : start;
+}
+
+/** End of a "YYYY-MM-DD" day in Lagos (23:59). */
+export function lagosEndOf(dateStr: string): Date {
+  return new Date(`${dateStr}T23:59:00+01:00`);
+}
+
+type Validity = { type?: string | null | undefined; valid_from?: string | null | undefined; valid_to: string };
+
+/** How long a code works, in words. Long Stay codes that start later show the date range. */
+export function formatValidity(c: Validity, now: Date = new Date()): string {
+  if (c.type === "long_stay" && c.valid_from && new Date(c.valid_from).getTime() > now.getTime()) {
+    return `From ${lagosDay(c.valid_from)} ${formatUntil(c.valid_to, now).replace(/^Until /, "until ")}`;
+  }
+  return formatUntil(c.valid_to, now);
+}
+
 export async function shareAccessCode(params: {
   code: string;
   validTo: Date | string;
   houseNumber: string;
   unitLabel: string;
+  type?: string | null | undefined;
+  validFrom?: string | null | undefined;
 }): Promise<void> {
   const formattedCode = formatCode(params.code);
-  const untilPart = formatUntil(params.validTo).replace(/^Until\s+/i, "");
-  const message = `Assalam Alaekum. Your access code for Lighthouse Estate Lekki is ${formattedCode}. Valid until ${untilPart}. Visiting House ${params.houseNumber} · ${params.unitLabel}. Please show this code to the guard at the gate.`;
+  const validTo = typeof params.validTo === "string" ? params.validTo : params.validTo.toISOString();
+  const when = formatValidity({ type: params.type, valid_from: params.validFrom, valid_to: validTo });
+  const validPart = when.startsWith("From ") ? `Valid ${when.charAt(0).toLowerCase()}${when.slice(1)}` : `Valid until ${when.replace(/^Until\s+/i, "")}`;
+  const longStay = params.type === "long_stay" ? " You can come and go as often as you need until then." : "";
+  const message = `Assalam Alaekum. Your access code for Lighthouse Estate Lekki is ${formattedCode}. ${validPart}.${longStay} Visiting House ${params.houseNumber} · ${params.unitLabel}. Please show this code to the guard at the gate.`;
 
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {

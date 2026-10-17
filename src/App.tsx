@@ -10,6 +10,7 @@ import * as GuardVerdictExpired from "@/pages/guard-verdict-expired";
 import * as GuardVerify from "@/pages/guard-verify";
 import * as Hadith from "@/pages/hadith";
 import * as Inbox from "@/pages/inbox";
+import * as Codes from "@/pages/codes";
 import * as Sos from "@/pages/sos";
 import * as ManagerAnnounce from "@/pages/manager-announce";
 import { SosWatcher } from "@/components/lh/SosWatcher";
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/guard/verdict/expired" element={<Page title={GuardVerdictExpired.title}><GuardVerdictExpired.default /></Page>} />
         <Route path="/guard/verify" element={<Page title={GuardVerify.title}><GuardVerify.default /></Page>} />
         <Route path="/hadith" element={<Page title={Hadith.title}><Hadith.default /></Page>} />
+        <Route path="/codes" element={<Page title={Codes.title}><Codes.default /></Page>} />
         <Route path="/inbox" element={<Page title={Inbox.title}><Inbox.default /></Page>} />
         <Route path="/sos" element={<Page title={Sos.title}><Sos.default /></Page>} />
         <Route path="/manager/announce" element={<Page title={ManagerAnnounce.title}><ManagerAnnounce.default /></Page>} />

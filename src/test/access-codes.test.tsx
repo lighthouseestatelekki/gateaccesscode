@@ -235,9 +235,9 @@ describe("Home access codes — Cancel, Extend, and Cancelled status", () => {
     fireEvent.click(screen.getByRole("button", { name: "Extend code" }));
 
     await waitFor(() => {
-      expect(mockRpc).toHaveBeenCalledTimes(1);
+      expect(mockRpc.mock.calls.some((c) => c[0] === "extend_my_code")).toBe(true);
     });
-    const [fnName, args] = mockRpc.mock.calls[0]!;
+    const [fnName, args] = mockRpc.mock.calls.find((c) => c[0] === "extend_my_code")!;
     expect(fnName).toBe("extend_my_code");
     expect(args.p_code_id).toBe("code-xyz");
     expect(args.p_valid_to).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -264,5 +264,17 @@ describe("Home access codes — Cancel, Extend, and Cancelled status", () => {
     expect(await screen.findByText("529 117")).toBeInTheDocument();
     expect(screen.getByText("Cancelled")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Create again" })).toBeInTheDocument();
+  });
+});
+
+describe("Long Stay wording", () => {
+  it("shows a date range for a stay that starts later, and 'Until' once it has started", async () => {
+    const { formatValidity, lagosEndOf, lagosStartOf } = await import("@/lib/expiry");
+    const now = new Date("2026-10-17T10:00:00Z"); // Sat 17 Oct, 11:00 AM Lagos
+    expect(formatValidity({ type: "long_stay", valid_from: "2026-10-19T23:00:00Z", valid_to: "2026-10-25T22:59:00Z" }, now)).toBe("From Tue 20 Oct until Sun 25 Oct, 11:59 PM");
+    expect(formatValidity({ type: "long_stay", valid_from: "2026-10-17T09:00:00Z", valid_to: "2026-10-18T22:59:00Z" }, now)).toBe("Until tomorrow, 11:59 PM");
+    expect(lagosEndOf("2026-10-25").toISOString()).toBe("2026-10-25T22:59:00.000Z");
+    expect(lagosStartOf("2026-10-17", now)).toEqual(now); // today starts now
+    expect(lagosStartOf("2026-10-20", now).toISOString()).toBe("2026-10-19T23:00:00.000Z");
   });
 });
