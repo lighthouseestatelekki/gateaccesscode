@@ -123,7 +123,7 @@ describe("Guard login and verification", () => {
     expect(await screen.findByText("ACCESS")).toBeInTheDocument();
     expect(screen.getByText("IN")).toBeInTheDocument();
     expect(screen.getByText("Ibrahim Yusuf")).toBeInTheDocument();
-    expect(screen.getByText("House 14 · Main house")).toBeInTheDocument();
+    expect(screen.getByText("House 14 · Duplex")).toBeInTheDocument();
     expect(screen.getByText("Guest")).toBeInTheDocument();
     expect(mockRpc).toHaveBeenCalledWith("verify_code", { p_code: "184302" });
   });
@@ -154,6 +154,6 @@ describe("Guard login and verification", () => {
 
     expect(screen.getByText("OUT")).toBeInTheDocument();
     expect(screen.getByText("Ibrahim Yusuf")).toBeInTheDocument();
-    expect(screen.getByText("House 14 · Main house")).toBeInTheDocument();
+    expect(screen.getByText("House 14 · Duplex")).toBeInTheDocument();
   });
 });

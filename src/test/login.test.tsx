@@ -121,4 +121,35 @@ describe("Resident login", () => {
 
     expect(await screen.findByText("HOME PAGE")).toBeInTheDocument();
   });
+
+  it("first time: house number, tap unit, then PIN signs in with the right unit", async () => {
+    localStorage.clear();
+    mockSignInWithPassword.mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
+    mockSingle.mockResolvedValue({
+      data: { role: "resident", status: "active", must_change_pin: false, full_name: "Aisha Bello", house_number: "31", house_unit: "boys" },
+      error: null,
+    });
+    openLogin();
+    expect(screen.queryByText("Guest chalet")).not.toBeInTheDocument();
+    enterPin("31");
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getAllByRole("radio").map((b) => b.textContent)).toEqual([
+      "DuplexThe main house", "Ground FloorDownstairs flat", "First FloorUpstairs flat", "BQBoys' quarters",
+    ]);
+    fireEvent.click(screen.getByRole("radio", { name: /^BQ/ }));
+    expect(await screen.findByText("Enter your PIN")).toBeInTheDocument();
+    enterPin("246810");
+    expect(await screen.findByText("HOME PAGE")).toBeInTheDocument();
+    expect(mockSignInWithPassword).toHaveBeenCalledWith(expect.objectContaining({ house_number: "31", house_unit: "boys" }));
+    expect(JSON.parse(localStorage.getItem("lh.house")!)).toEqual({ number: "31", unit: "BQ" });
+  });
+
+  it("still signs in a phone that remembered an old label like 'Main house'", async () => {
+    mockSignInWithPassword.mockResolvedValue({ data: { user: null }, error: { message: "Invalid login credentials" } });
+    openLogin();
+    expect(screen.getByText("Duplex")).toBeInTheDocument();
+    enterPin("246810");
+    await screen.findByRole("alert");
+    expect(mockSignInWithPassword).toHaveBeenCalledWith(expect.objectContaining({ house_unit: "main" }));
+  });
 });

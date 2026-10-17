@@ -1,11 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { HadithLine, Hero, Keypad, PinBoxes, Screen, Sheet, UnitPicker, usePin, Button } from "@/components/lh/ui";
+import { HadithLine, Hero, Keypad, PinBoxes, Screen, Sheet, usePin, Button } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { pinSignIn } from "@/lib/staffAdmin";
 import { setStaffChoice } from "@/lib/entry";
-import { unitToCode } from "@/lib/units";
-import { UNITS } from "@/mock/data";
+import { codeToUnit, UNIT_LABELS, unitToCode } from "@/lib/units";
 
 export const title = "Resident log in";
 
@@ -15,7 +14,9 @@ const KEY = "lh.house";
 function loadHouse(): House | null {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as House) : null;
+    if (!raw) return null;
+    const h = JSON.parse(raw) as House;
+    return { ...h, unit: codeToUnit(unitToCode(h.unit)) }; // old labels like "Main house" show as "Duplex"
   } catch {
     return null;
   }
@@ -53,10 +54,53 @@ function StaffLink() {
   );
 }
 
-/** Step 1 (first time, or after "Change house"): which house and unit. */
+const UNIT_HINT: Record<string, string> = { Duplex: "The main house", "Ground Floor": "Downstairs flat", "First Floor": "Upstairs flat", BQ: "Boys' quarters" };
+
+/** First time on this phone: type the house number, then tap the unit. Tapping the unit goes straight to the PIN. */
 function PickHouse({ onDone }: { onDone: (h: House) => void }) {
   const num = usePin();
-  const [unit, setUnit] = useState<string>(UNITS[0]);
+  const [step, setStep] = useState<"house" | "unit">("house");
+  const ok = !!num.value && Number(num.value) > 0;
+
+  if (step === "unit") {
+    const n = String(Number(num.value));
+    return (
+      <Screen>
+        <h1 className="sr-only">Resident log in</h1>
+        <Hero>
+          <Brand
+            right={
+              <button onClick={() => setStep("house")} className="min-h-11 rounded-full bg-white/15 px-4 text-sm font-semibold text-white">
+                Change house
+              </button>
+            }
+          />
+          <p className="mt-6 text-sm text-deep-foreground/80">House {n} · which unit?</p>
+          <p className="mt-1 font-display text-8xl font-extrabold leading-[0.85] tracking-tight text-white">{n}</p>
+        </Hero>
+        <Sheet className="flex flex-col gap-3">
+          <h2 className="text-center text-lg font-bold">Tap your unit</h2>
+          <div role="radiogroup" aria-label="Unit" className="grid grid-cols-2 gap-3">
+            {UNIT_LABELS.map((u) => (
+              <button
+                key={u}
+                type="button"
+                role="radio"
+                aria-checked="false"
+                onClick={() => onDone({ number: n, unit: u })}
+                className="flex min-h-24 flex-col items-start justify-center rounded-lg bg-mint-lightest px-4 text-left transition-colors active:bg-deep active:text-deep-foreground"
+              >
+                <span className="font-display text-xl font-bold">{u}</span>
+                <span className="text-sm text-text-2">{UNIT_HINT[u]}</span>
+              </button>
+            ))}
+          </div>
+          <StaffLink />
+        </Sheet>
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
       <h1 className="sr-only">Resident log in</h1>
@@ -68,20 +112,14 @@ function PickHouse({ onDone }: { onDone: (h: House) => void }) {
             </Link>
           }
         />
-        <p className="mt-6 text-sm text-deep-foreground/80">Assalam Alaekum · which house?</p>
+        <p className="mt-6 text-sm text-deep-foreground/80">Assalam Alaekum · what is your house number?</p>
         <p aria-live="polite" className="mt-1 flex h-20 items-end font-display text-8xl font-extrabold leading-[0.85] tracking-tight text-white">
-          {num.value || <span className="pb-2 text-2xl font-bold text-deep-foreground/45">Tap your house number</span>}
+          {num.value || <span className="pb-2 text-2xl font-bold text-deep-foreground/55">Type it below</span>}
         </p>
       </Hero>
       <Sheet className="flex flex-col gap-5">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-text-2">Unit</p>
-          <UnitPicker value={unit} onChange={setUnit} options={UNITS} />
-        </div>
         <Keypad onDigit={(d) => num.value.length < 3 && num.onDigit(d)} onBack={num.onBack} />
-        <Button disabled={!num.value || num.value === "0"} onClick={() => onDone({ number: String(Number(num.value)), unit })}>
-          Continue
-        </Button>
+        <Button disabled={!ok} onClick={() => setStep("unit")}>Next</Button>
         <StaffLink />
       </Sheet>
     </Screen>

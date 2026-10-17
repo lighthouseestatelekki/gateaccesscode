@@ -284,10 +284,10 @@ describe("Long Stay wording", () => {
 describe("Gate message", () => {
   it("follows the estate's format, with host name but no phone number", async () => {
     const { gateMessage } = await import("@/lib/expiry");
-    const m = gateMessage({ code: "543018", hostName: "Aisha Bello", houseNumber: "14", unitLabel: "Main house", whenLine: "Valid until: today, 7:21 PM" });
+    const m = gateMessage({ code: "543018", hostName: "Aisha Bello", houseNumber: "14", unitLabel: "Duplex", whenLine: "Valid until: today, 7:21 PM" });
     expect(m.startsWith("Assalam Alaekum Waramotullahi Wabarakatu,\n\nWelcome to Lighthouse Estate Lekki.")).toBe(true);
     expect(m).toContain("🔑 Access code: 543 018");
-    expect(m).toContain("🏠 Host: Aisha Bello, House 14 · Main house");
+    expect(m).toContain("🏠 Host: Aisha Bello, House 14 · Duplex");
     expect(m).toContain("⏱️ Valid until: today, 7:21 PM");
     expect(m).toContain("Alcohol, indecent dressing and loud music are strictly prohibited.");
     expect(m).not.toMatch(/phone|\+234|080/i);

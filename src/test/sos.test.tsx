@@ -25,7 +25,7 @@ describe("SOS alerts", () => {
     h.me = { id: "g7", role: "guard", status: "active" };
     h.list = [alert];
     show();
-    expect(screen.getByRole("alertdialog")).toHaveTextContent("House 31 · Ground floor flat");
+    expect(screen.getByRole("alertdialog")).toHaveTextContent("House 31 · Ground Floor");
     expect(screen.getByText("Kabir Hassan")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /0809 555 0177/ })).toHaveAttribute("href", "tel:0809 555 0177");
     fireEvent.click(screen.getByRole("button", { name: /Acknowledge/ }));
