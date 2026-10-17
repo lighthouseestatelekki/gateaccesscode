@@ -5,7 +5,9 @@
 //
 // Actions:
 //   register     — anyone: create a pending resident
-//   login        — anyone: resident (house + unit + PIN) or guard (number + PIN); 5 wrong PINs = 15-minute lock
+//   login        — anyone: resident (house + unit + PIN) or guard (number + PIN).
+//                  5 wrong PINs locks only that phone for 15 minutes. 20 wrong PINs on one house/guard
+//                  from all phones within an hour locks it for 15 minutes and alerts the owner + Estate Manager.
 //   change_pin   — signed-in user: set a new PIN, clears "must change PIN"
 //   create_guard — Estate Manager only
 //   reset_pin    — Estate Manager only: temporary PIN for a resident or guard, clears any lock
@@ -19,7 +21,9 @@ const cors = {
 const reply = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
-const MAX_FAILS = 5;
+const MAX_FAILS = 5; // per phone
+const HOUSE_MAX_FAILS = 20; // all phones together, per hour
+const WINDOW_MINUTES = 60;
 const LOCK_MINUTES = 15;
 const UNITS = ["main", "ground", "upper", "chalet", "boys"];
 const RES_DOMAIN = "residents.lighthouseestate.app";
@@ -53,6 +57,38 @@ async function pepper(pin: string, login: string): Promise<string> {
 const cleanNumber = (v: unknown) => String(Number(String(v ?? "").trim()));
 const residentLogin = (house: string, unit: string) => `house${house}-${unit}@${RES_DOMAIN}`;
 const guardLogin = (num: string) => `guard${num}@${GUARD_DOMAIN}`;
+
+// deno-lint-ignore no-explicit-any
+type Admin = any;
+
+async function clearLocks(admin: Admin, login: string) {
+  await admin.from("login_attempts").delete().eq("login", login);
+  await admin.from("login_device_attempts").delete().eq("login", login);
+}
+
+/** Tell the house's resident (or the guard) and every Estate Manager that someone is guessing PINs. */
+async function alertOwners(admin: Admin, login: string, kind: "guard" | "resident") {
+  const m = kind === "guard" ? login.match(/^guard(\d+)@/) : login.match(/^house(\d+)-([a-z]+)@/);
+  if (!m) return;
+  const owners = kind === "guard"
+    ? await admin.from("profiles").select("id").eq("role", "guard").eq("guard_number", m[1]).eq("status", "active")
+    : await admin.from("profiles").select("id").eq("role", "resident").eq("house_number", m[1]).eq("house_unit", m[2]).eq("status", "active");
+  const managers = await admin.from("profiles").select("id").eq("role", "estate_manager").eq("status", "active");
+  const who = kind === "guard" ? `Guard ${m[1]}` : `House ${m[1]}`;
+  const rows = [
+    ...(owners.data ?? []).map((p: { id: string }) => ({
+      recipient_id: p.id, kind: "security", link: "/inbox",
+      title: "Many wrong PINs on your account",
+      body: `Someone typed many wrong PINs for ${who}. New sign-ins are paused for ${LOCK_MINUTES} minutes. You stay signed in. If this wasn't you, change your PIN from More.`,
+    })),
+    ...(managers.data ?? []).map((p: { id: string }) => ({
+      recipient_id: p.id, kind: "security", link: "/manager/residents",
+      title: `Many wrong PINs: ${who}`,
+      body: `${HOUSE_MAX_FAILS} wrong PINs in under an hour. Sign-in for ${who} is paused for ${LOCK_MINUTES} minutes.`,
+    })),
+  ];
+  if (rows.length) await admin.from("notifications").insert(rows);
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -125,11 +161,21 @@ Deno.serve(async (req) => {
       }
       if (!/^\d{6}$/.test(pin)) return reply({ error: "Enter your 6-digit PIN." }, 400);
 
-      const { data: att } = await admin.from("login_attempts").select("fails,locked_until").eq("login", login).maybeSingle();
+      // Which phone is trying. The app sends a random id it keeps; fall back to the network address.
+      const rawDevice = String(body.device ?? "");
+      const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0]!.trim() || "unknown";
+      const device = /^[A-Za-z0-9-]{8,64}$/.test(rawDevice) ? rawDevice : `ip:${ip}`;
       const now = Date.now();
+      const minsLeft = (iso: string) => Math.max(1, Math.ceil((new Date(iso).getTime() - now) / 60000));
+      const plural = (n: number) => `${n} minute${n === 1 ? "" : "s"}`;
+
+      const { data: dev } = await admin.from("login_device_attempts").select("fails,locked_until,updated_at").eq("login", login).eq("device", device).maybeSingle();
+      if (dev?.locked_until && new Date(dev.locked_until).getTime() > now) {
+        return reply({ error: `Too many wrong PINs on this phone. Please wait ${plural(minsLeft(dev.locked_until))}, or ask the Estate Manager to reset your PIN.`, locked: true }, 423);
+      }
+      const { data: att } = await admin.from("login_attempts").select("fails,locked_until,window_start").eq("login", login).maybeSingle();
       if (att?.locked_until && new Date(att.locked_until).getTime() > now) {
-        const mins = Math.max(1, Math.ceil((new Date(att.locked_until).getTime() - now) / 60000));
-        return reply({ error: `Too many wrong PINs. Please wait ${mins} minute${mins === 1 ? "" : "s"}, or ask the Estate Manager to reset your PIN.`, locked: true }, 423);
+        return reply({ error: `For safety, sign-in for this ${kind === "guard" ? "guard number" : "house"} is paused after many wrong PINs. Please wait ${plural(minsLeft(att.locked_until))}, or ask the Estate Manager to reset your PIN.`, locked: true }, 423);
       }
 
       let session = (await fresh().auth.signInWithPassword({ email: login, password: await pepper(pin, login) })).data.session;
@@ -143,23 +189,40 @@ Deno.serve(async (req) => {
       }
 
       if (!session) {
-        const fails = (att?.locked_until && new Date(att.locked_until).getTime() <= now ? 0 : att?.fails ?? 0) + 1;
-        const lock = fails >= MAX_FAILS;
+        const stamp = new Date(now).toISOString();
+        // 1) This phone.
+        const devStale = !dev || !!dev.locked_until || now - new Date(dev.updated_at).getTime() > WINDOW_MINUTES * 60000;
+        const devFails = (devStale ? 0 : dev.fails) + 1;
+        const devLock = devFails >= MAX_FAILS;
+        await admin.from("login_device_attempts").upsert({
+          login, device,
+          fails: devLock ? 0 : devFails,
+          locked_until: devLock ? new Date(now + LOCK_MINUTES * 60000).toISOString() : null,
+          updated_at: stamp,
+        });
+        // 2) All phones together, within the last hour.
+        const fresh_window = !att?.window_start || now - new Date(att.window_start).getTime() > WINDOW_MINUTES * 60000;
+        const houseFails = (fresh_window ? 0 : att?.fails ?? 0) + 1;
+        const houseLock = houseFails >= HOUSE_MAX_FAILS;
         await admin.from("login_attempts").upsert({
           login,
-          fails: lock ? 0 : fails,
-          locked_until: lock ? new Date(now + LOCK_MINUTES * 60000).toISOString() : null,
-          updated_at: new Date().toISOString(),
+          fails: houseLock ? 0 : houseFails,
+          window_start: houseLock ? null : fresh_window ? stamp : att!.window_start,
+          locked_until: houseLock ? new Date(now + LOCK_MINUTES * 60000).toISOString() : null,
+          updated_at: stamp,
         });
-        if (lock) {
-          return reply({ error: `Too many wrong PINs. Please wait ${LOCK_MINUTES} minutes, or ask the Estate Manager to reset your PIN.`, locked: true }, 423);
+        if (houseLock) await alertOwners(admin, login, kind);
+
+        if (devLock || houseLock) {
+          return reply({ error: `Too many wrong PINs. Please wait ${plural(LOCK_MINUTES)}, or ask the Estate Manager to reset your PIN.`, locked: true }, 423);
         }
-        const left = MAX_FAILS - fails;
+        const left = MAX_FAILS - devFails;
         const what = kind === "guard" ? "Guard number or PIN is incorrect." : "House number or PIN is incorrect.";
         return reply({ error: `${what} ${left} ${left === 1 ? "try" : "tries"} left.` }, 401);
       }
 
-      await admin.from("login_attempts").delete().eq("login", login);
+      // Success clears this phone's count only, so someone guessing elsewhere can't reset the hourly total.
+      await admin.from("login_device_attempts").delete().eq("login", login).eq("device", device);
       return reply({ ok: true, access_token: session.access_token, refresh_token: session.refresh_token });
     }
 
@@ -178,7 +241,7 @@ Deno.serve(async (req) => {
       const { error: pwErr } = await admin.auth.admin.updateUserById(who.user.id, { password: await pepper(pin, login) });
       if (pwErr) return reply({ error: pwErr.message }, 400);
       await admin.from("profiles").update({ must_change_pin: false }).eq("id", who.user.id);
-      await admin.from("login_attempts").delete().eq("login", login);
+      await clearLocks(admin, login);
       return reply({ ok: true });
     }
 
@@ -222,7 +285,7 @@ Deno.serve(async (req) => {
       if (pwErr) return reply({ error: pwErr.message }, 400);
       const { data: flagged, error: flagErr } = await admin.from("profiles").update({ must_change_pin: true }).eq("id", id).select("id");
       if (flagErr || !flagged || flagged.length !== 1) return reply({ error: flagErr?.message ?? "Could not mark the PIN for change." }, 400);
-      await admin.from("login_attempts").delete().eq("login", login);
+      await clearLocks(admin, login);
       return reply({ ok: true, temp_pin: temp });
     }
 

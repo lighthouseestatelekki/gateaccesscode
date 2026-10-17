@@ -12,11 +12,11 @@ export const title = "Inbox";
 
 const icons: Record<string, typeof Bell> = {
   announcement: Megaphone, code_in: LogIn, code_out: DoorOpen, code_refused: XCircle,
-  code_switched_off: XCircle, approved: ShieldCheck, sos: ShieldAlert,
+  code_switched_off: XCircle, approved: ShieldCheck, sos: ShieldAlert, security: ShieldAlert,
 };
 const tint: Record<string, string> = {
   announcement: "bg-gold-light text-gold-text", sos: "bg-destructive-light text-destructive",
-  code_refused: "bg-destructive-light text-destructive", code_switched_off: "bg-muted text-text-2",
+  code_refused: "bg-destructive-light text-destructive", security: "bg-gold-light text-gold-text", code_switched_off: "bg-muted text-text-2",
 };
 
 function Row({ n }: { n: Notice }) {

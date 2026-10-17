@@ -6,6 +6,7 @@ import { ResidentTabs } from "@/components/lh/nav";
 import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { ThemePicker } from "@/components/lh/ThemePicker";
+import { LangPicker } from "@/components/lh/LangPicker";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
 
@@ -36,6 +37,7 @@ function More() {
           )}
           <li><Link to="/sos" className={row}><span className={`${ico} bg-destructive/10 text-destructive`}><ShieldAlert className="size-5" /></span><span className="flex-1">SOS emergency</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
         </ul>
+        <LangPicker />
         <ThemePicker />
         <button
           onClick={async () => {

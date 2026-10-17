@@ -1,4 +1,5 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, type ReactNode } from "react";
+import { applyLang } from "@/lib/i18n";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import * as ChangePin from "@/pages/change-pin";
 import * as CodeCreated from "@/pages/code-created";
@@ -32,6 +33,12 @@ import * as ManagerResidents from "@/pages/manager-residents";
 import * as Pending from "@/pages/pending";
 import * as Register from "@/pages/register";
 
+function LangSync() {
+  const { pathname } = useLocation();
+  useLayoutEffect(() => applyLang(pathname), [pathname]);
+  return null;
+}
+
 function Page({ title, children }: { title: string; children: ReactNode }) {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -44,6 +51,7 @@ function Page({ title, children }: { title: string; children: ReactNode }) {
 export default function App() {
   return (
     <>
+    <LangSync />
     <SosWatcher />
     <Routes>
       <Route path="/" element={<Page title={Welcome.title}><Welcome.default /></Page>} />

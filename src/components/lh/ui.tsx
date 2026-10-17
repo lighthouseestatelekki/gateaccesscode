@@ -71,7 +71,7 @@ export function SelectField({ label, options, ...p }: { label: string; options: 
 
 export function PinBoxes({ value, size = "md", tone = "light" }: { value: string; size?: "md" | "lg"; tone?: "light" | "dark" }) {
   return (
-    <div className="flex h-6 items-center justify-center gap-4" aria-label={`${value.length} of 6 digits entered`}>
+    <div dir="ltr" className="flex h-6 items-center justify-center gap-4" aria-label={`${value.length} of 6 digits entered`}>
       {Array.from({ length: 6 }).map((_, i) => {
         const filled = i < value.length;
         return (
@@ -96,7 +96,7 @@ export function Keypad({ onDigit, onBack, tone = "light", big }: { onDigit: (d: 
     tone === "dark" ? "bg-deep-mid text-deep-foreground active:bg-primary" : "bg-muted text-deep active:bg-primary active:text-primary-foreground",
   );
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div dir="ltr" className="grid grid-cols-3 gap-2">
       {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
         <button key={d} type="button" className={key} onClick={() => onDigit(d)}>{d}</button>
       ))}

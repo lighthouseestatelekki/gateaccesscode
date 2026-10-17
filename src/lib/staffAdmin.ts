@@ -32,9 +32,23 @@ type SignInResult = { data: { user: { id: string } | null }; error: { message: s
  * PIN sign-in through the server (which enforces the wrong-PIN lock), then stores the session locally.
  * Returns the same shape as supabase.auth.signInWithPassword so screens handle it the same way.
  */
+/** A random id this phone keeps, so wrong PINs lock only this phone (not the whole house). */
+export function deviceId(): string {
+  try {
+    let id = localStorage.getItem("lh.device");
+    if (!id) {
+      id = crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+      localStorage.setItem("lh.device", id);
+    }
+    return id;
+  } catch {
+    return "";
+  }
+}
+
 export async function pinSignIn(params: { kind: "resident"; house_number: string; house_unit: string; pin: string } | { kind: "guard"; guard_number: string; pin: string }): Promise<SignInResult> {
   try {
-    const r = await pinAuth<{ access_token: string; refresh_token: string }>({ action: "login", ...params });
+    const r = await pinAuth<{ access_token: string; refresh_token: string }>({ action: "login", ...params, device: deviceId() });
     const { data, error } = await supabase.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
     if (error || !data.user) return { data: { user: null }, error: { message: error?.message ?? "Could not sign in." } };
     return { data: { user: { id: data.user.id } }, error: null };

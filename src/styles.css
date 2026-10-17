@@ -193,3 +193,9 @@
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
+
+/* Arabic (resident screens): Arabic font, right-to-left, but numbers and codes stay left-to-right. */
+html[lang="ar"] body, html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3 { font-family: "Noto Naskh Arabic", var(--font-sans); letter-spacing: 0; }
+html[dir="rtl"] .code-digits { direction: ltr; unicode-bidi: isolate; }
+html[dir="rtl"] .lucide-chevron-right, html[dir="rtl"] .lucide-arrow-left { transform: scaleX(-1); }
+html[dir="rtl"] .lh-select { background-position: left 12px center; padding-left: 2.25rem; padding-right: 1rem; }

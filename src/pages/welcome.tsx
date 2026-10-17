@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { BellRing, KeyRound, ShieldCheck } from "lucide-react";
 import { btnClass, Wordmark } from "@/components/lh/ui";
+import { LangSwitch } from "@/components/lh/LangPicker";
 import { getStaffChoice, homeForSession, staffPath } from "@/lib/entry";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +51,7 @@ function Welcome() {
 
   function go(n: number) {
     const el = strip.current;
-    if (el) el.scrollTo({ left: n * el.clientWidth, behavior: "smooth" });
+    if (el) el.scrollTo({ left: (document.documentElement.dir === "rtl" ? -1 : 1) * n * el.clientWidth, behavior: "smooth" });
   }
 
   return (
@@ -64,15 +65,16 @@ function Welcome() {
         </div>
       ) : (
         <>
-          <header className="flex items-center gap-2 px-5 pt-6 safe-top">
+          <header className="flex items-center justify-between gap-2 px-5 pt-6 safe-top">
             <Wordmark />
+            <LangSwitch />
           </header>
           <h1 className="sr-only">Welcome to Light House Estate</h1>
           <div
             ref={strip}
             onScroll={(e) => {
               const el = e.currentTarget;
-              setI(Math.round(el.scrollLeft / Math.max(1, el.clientWidth)));
+              setI(Math.round(Math.abs(el.scrollLeft) / Math.max(1, el.clientWidth)));
             }}
             className="scrollbar-hidden flex flex-1 snap-x snap-mandatory overflow-x-auto"
           >
