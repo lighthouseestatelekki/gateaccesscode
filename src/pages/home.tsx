@@ -259,6 +259,7 @@ function Home() {
                                 code: c.code,
                                 validTo: c.valid_to,
                                 houseNumber: profile.house_number,
+                                hostName: profile.full_name,
                                 unitLabel,
                                 type: c.type,
                                 validFrom: c.valid_from,

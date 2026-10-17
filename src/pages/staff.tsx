@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Clock, Phone, Plus, Share2, UserMinus } from "lucide-react";
 import { BottomSheet, Button, Field, Hero, Screen, Sheet } from "@/components/lh/ui";
 import { ScheduleEditor, scheduleProblem } from "@/components/lh/ScheduleEditor";
-import { formatCode } from "@/lib/expiry";
+import { formatCode, gateMessage, shareText } from "@/lib/expiry";
 import { ALWAYS, describeSchedule, fromRow, toRpc, type Schedule } from "@/lib/schedule";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
@@ -17,15 +17,13 @@ type StaffCode = {
   employees: { id: string; full_name: string; phone: string | null; job_title: string } | null;
 };
 
-export async function shareStaffCode(c: { code: string; holder: string; job: string; schedule: Schedule; house: string; unit: string }) {
-  const msg = `Assalam Alaekum ${c.holder}. Your staff access code for Lighthouse Estate Lekki is ${formatCode(c.code)} (${c.job}, House ${c.house} · ${c.unit}). It works: ${describeSchedule(c.schedule)}. Please show this code to the guard at the gate each time you come in and go out.`;
-  if (typeof navigator.share === "function") {
-    try {
-      await navigator.share({ text: msg });
-    } catch {
-      /* cancelled */
-    }
-  } else window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+export async function shareStaffCode(c: { code: string; holder: string; job: string; schedule: Schedule; host: string; house: string; unit: string }) {
+  const msg = gateMessage({
+    code: c.code, hostName: c.host, houseNumber: c.house, unitLabel: c.unit,
+    whenLine: `Staff code (${c.job}), works: ${describeSchedule(c.schedule)}`,
+    extra: "Use this same code each time you come in and go out.",
+  });
+  return shareText(msg);
 }
 
 function Staff() {
@@ -119,7 +117,7 @@ function Staff() {
                 </div>
                 <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground"><Clock className="size-4" />{describeSchedule(s)}</p>
                 <div className="mt-3 flex gap-2">
-                  <button aria-label={`Share code with ${c.holder_name}`} onClick={() => shareStaffCode({ code: c.code, holder: c.holder_name, job: jobTitle, schedule: s, house: profile.house_number, unit })} className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep"><Share2 className="size-5" /></button>
+                  <button aria-label={`Share code with ${c.holder_name}`} onClick={() => shareStaffCode({ code: c.code, holder: c.holder_name, job: jobTitle, schedule: s, host: profile.full_name, house: profile.house_number, unit })} className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep"><Share2 className="size-5" /></button>
                   {c.employees?.phone && <a aria-label={`Call ${c.holder_name}`} href={`tel:${c.employees.phone}`} className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep"><Phone className="size-5" /></a>}
                   <button onClick={() => { setSched(s); setError(""); setEditing(c); }} className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold">Change hours</button>
                   <button aria-label={`Remove ${c.holder_name}`} onClick={() => { setError(""); setRemoving(c); }} className="flex size-11 items-center justify-center rounded-sm border border-border text-destructive"><UserMinus className="size-5" /></button>

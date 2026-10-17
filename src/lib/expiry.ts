@@ -127,21 +127,33 @@ export function formatValidity(c: Validity, now: Date = new Date()): string {
   return formatUntil(c.valid_to, now);
 }
 
-export async function shareAccessCode(params: {
-  code: string;
-  validTo: Date | string;
-  houseNumber: string;
-  unitLabel: string;
-  type?: string | null | undefined;
-  validFrom?: string | null | undefined;
-}): Promise<void> {
-  const formattedCode = formatCode(params.code);
-  const validTo = typeof params.validTo === "string" ? params.validTo : params.validTo.toISOString();
-  const when = formatValidity({ type: params.type, valid_from: params.validFrom, valid_to: validTo });
-  const validPart = when.startsWith("From ") ? `Valid ${when.charAt(0).toLowerCase()}${when.slice(1)}` : `Valid until ${when.replace(/^Until\s+/i, "")}`;
-  const longStay = params.type === "long_stay" ? " You can come and go as often as you need until then." : "";
-  const message = `Assalam Alaekum. Your access code for Lighthouse Estate Lekki is ${formattedCode}. ${validPart}.${longStay} Visiting House ${params.houseNumber} · ${params.unitLabel}. Please show this code to the guard at the gate.`;
+const COMMUNITY_NOTE =
+  "🕌 Lighthouse Estate is a Muslim residential community. Residents and visitors are kindly expected to uphold its values and peaceful environment. Alcohol, indecent dressing and loud music are strictly prohibited.";
 
+/** The full gate message a visitor or staff member receives. `whenLine` is the time line (or working hours). */
+export function gateMessage(p: { code: string; hostName?: string | null | undefined; houseNumber: string; unitLabel: string; whenLine: string; extra?: string }): string {
+  const host = p.hostName ? `${p.hostName}, House ${p.houseNumber} · ${p.unitLabel}` : `House ${p.houseNumber} · ${p.unitLabel}`;
+  return [
+    "Assalam Alaekum Waramotullahi Wabarakatu,",
+    "",
+    "Welcome to Lighthouse Estate Lekki.",
+    "",
+    "Your gate access details:",
+    `🔑 Access code: ${formatCode(p.code)}`,
+    `🏠 Host: ${host}`,
+    `⏱️ ${p.whenLine}`,
+    ...(p.extra ? [p.extra] : []),
+    "",
+    "Please show this code to estate security at the gate.",
+    "If you need any assistance, kindly contact your host directly.",
+    "",
+    COMMUNITY_NOTE,
+    "",
+    "Thank you for your understanding and cooperation.",
+  ].join("\n");
+}
+
+export async function shareText(message: string): Promise<void> {
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {
       await navigator.share({ text: message });
@@ -152,3 +164,23 @@ export async function shareAccessCode(params: {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   }
 }
+
+export async function shareAccessCode(params: {
+  code: string;
+  validTo: Date | string;
+  houseNumber: string;
+  unitLabel: string;
+  hostName?: string | null | undefined;
+  type?: string | null | undefined;
+  validFrom?: string | null | undefined;
+}): Promise<void> {
+  const validTo = typeof params.validTo === "string" ? params.validTo : params.validTo.toISOString();
+  const when = formatValidity({ type: params.type, valid_from: params.validFrom, valid_to: validTo });
+  const whenLine = when.startsWith("From ") ? `Valid ${when.charAt(0).toLowerCase()}${when.slice(1)}` : `Valid until: ${when.replace(/^Until\s+/i, "")}`;
+  const message = gateMessage({
+    code: params.code, hostName: params.hostName, houseNumber: params.houseNumber, unitLabel: params.unitLabel, whenLine,
+    ...(params.type === "long_stay" ? { extra: "You can come and go as often as you need until then." } : {}),
+  });
+  return shareText(message);
+}
+

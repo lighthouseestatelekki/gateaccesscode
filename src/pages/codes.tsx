@@ -97,7 +97,7 @@ function Codes() {
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <p className="text-xs text-muted-foreground">Created {formatWhen(c.created_at)}</p>
                   {st === "Active" ? (
-                    <button aria-label="Share" onClick={() => shareAccessCode({ code: c.code, validTo: c.valid_to, houseNumber: profile.house_number, unitLabel, type: c.type, validFrom: c.valid_from })} className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep">
+                    <button aria-label="Share" onClick={() => shareAccessCode({ code: c.code, validTo: c.valid_to, houseNumber: profile.house_number, hostName: profile.full_name, unitLabel, type: c.type, validFrom: c.valid_from })} className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep">
                       <Share2 className="size-5" />
                     </button>
                   ) : (

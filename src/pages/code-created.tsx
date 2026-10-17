@@ -54,6 +54,7 @@ function CodeCreated() {
               code: state!.code!,
               validTo: state!.valid_to!,
               houseNumber: profile.house_number,
+              hostName: profile.full_name,
               unitLabel: codeToUnit(profile.house_unit),
               type: state!.type,
               validFrom: state!.valid_from,
