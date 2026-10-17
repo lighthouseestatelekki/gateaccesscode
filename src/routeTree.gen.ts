@@ -10,33 +10,271 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChangePinRouteImport } from './routes/change-pin'
+import { Route as CodeCreatedRouteImport } from './routes/code-created'
+import { Route as CreateCodeRouteImport } from './routes/create-code'
+import { Route as HadithRouteImport } from './routes/hadith'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PendingRouteImport } from './routes/pending'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as GuardLoginRouteImport } from './routes/guard.login'
+import { Route as GuardVerifyRouteImport } from './routes/guard.verify'
+import { Route as ManagerApprovalsRouteImport } from './routes/manager.approvals'
+import { Route as ManagerGuardsRouteImport } from './routes/manager.guards'
+import { Route as ManagerLoginRouteImport } from './routes/manager.login'
+import { Route as ManagerResidentsRouteImport } from './routes/manager.residents'
+import { Route as GuardVerdictAccessRouteImport } from './routes/guard.verdict.access'
+import { Route as GuardVerdictDeniedRouteImport } from './routes/guard.verdict.denied'
+import { Route as GuardVerdictExpiredRouteImport } from './routes/guard.verdict.expired'
+import { Route as ManagerApprovals1RouteImport } from './routes/manager.approvals_.1'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChangePinRoute = ChangePinRouteImport.update({
+  id: '/change-pin',
+  path: '/change-pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CodeCreatedRoute = CodeCreatedRouteImport.update({
+  id: '/code-created',
+  path: '/code-created',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreateCodeRoute = CreateCodeRouteImport.update({
+  id: '/create-code',
+  path: '/create-code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HadithRoute = HadithRouteImport.update({
+  id: '/hadith',
+  path: '/hadith',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendingRoute = PendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuardLoginRoute = GuardLoginRouteImport.update({
+  id: '/guard/login',
+  path: '/guard/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuardVerifyRoute = GuardVerifyRouteImport.update({
+  id: '/guard/verify',
+  path: '/guard/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagerApprovalsRoute = ManagerApprovalsRouteImport.update({
+  id: '/manager/approvals',
+  path: '/manager/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagerGuardsRoute = ManagerGuardsRouteImport.update({
+  id: '/manager/guards',
+  path: '/manager/guards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagerLoginRoute = ManagerLoginRouteImport.update({
+  id: '/manager/login',
+  path: '/manager/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagerResidentsRoute = ManagerResidentsRouteImport.update({
+  id: '/manager/residents',
+  path: '/manager/residents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuardVerdictAccessRoute = GuardVerdictAccessRouteImport.update({
+  id: '/guard/verdict/access',
+  path: '/guard/verdict/access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuardVerdictDeniedRoute = GuardVerdictDeniedRouteImport.update({
+  id: '/guard/verdict/denied',
+  path: '/guard/verdict/denied',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuardVerdictExpiredRoute = GuardVerdictExpiredRouteImport.update({
+  id: '/guard/verdict/expired',
+  path: '/guard/verdict/expired',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagerApprovals1Route = ManagerApprovals1RouteImport.update({
+  id: '/manager/approvals_/1',
+  path: '/manager/approvals/1',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/change-pin': typeof ChangePinRoute
+  '/code-created': typeof CodeCreatedRoute
+  '/create-code': typeof CreateCodeRoute
+  '/hadith': typeof HadithRoute
+  '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
+  '/pending': typeof PendingRoute
+  '/register': typeof RegisterRoute
+  '/guard/login': typeof GuardLoginRoute
+  '/guard/verify': typeof GuardVerifyRoute
+  '/manager/approvals': typeof ManagerApprovalsRoute
+  '/manager/guards': typeof ManagerGuardsRoute
+  '/manager/login': typeof ManagerLoginRoute
+  '/manager/residents': typeof ManagerResidentsRoute
+  '/guard/verdict/access': typeof GuardVerdictAccessRoute
+  '/guard/verdict/denied': typeof GuardVerdictDeniedRoute
+  '/guard/verdict/expired': typeof GuardVerdictExpiredRoute
+  '/manager/approvals/1': typeof ManagerApprovals1Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/change-pin': typeof ChangePinRoute
+  '/code-created': typeof CodeCreatedRoute
+  '/create-code': typeof CreateCodeRoute
+  '/hadith': typeof HadithRoute
+  '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
+  '/pending': typeof PendingRoute
+  '/register': typeof RegisterRoute
+  '/guard/login': typeof GuardLoginRoute
+  '/guard/verify': typeof GuardVerifyRoute
+  '/manager/approvals': typeof ManagerApprovalsRoute
+  '/manager/guards': typeof ManagerGuardsRoute
+  '/manager/login': typeof ManagerLoginRoute
+  '/manager/residents': typeof ManagerResidentsRoute
+  '/guard/verdict/access': typeof GuardVerdictAccessRoute
+  '/guard/verdict/denied': typeof GuardVerdictDeniedRoute
+  '/guard/verdict/expired': typeof GuardVerdictExpiredRoute
+  '/manager/approvals/1': typeof ManagerApprovals1Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/change-pin': typeof ChangePinRoute
+  '/code-created': typeof CodeCreatedRoute
+  '/create-code': typeof CreateCodeRoute
+  '/hadith': typeof HadithRoute
+  '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
+  '/pending': typeof PendingRoute
+  '/register': typeof RegisterRoute
+  '/guard/login': typeof GuardLoginRoute
+  '/guard/verify': typeof GuardVerifyRoute
+  '/manager/approvals': typeof ManagerApprovalsRoute
+  '/manager/guards': typeof ManagerGuardsRoute
+  '/manager/login': typeof ManagerLoginRoute
+  '/manager/residents': typeof ManagerResidentsRoute
+  '/guard/verdict/access': typeof GuardVerdictAccessRoute
+  '/guard/verdict/denied': typeof GuardVerdictDeniedRoute
+  '/guard/verdict/expired': typeof GuardVerdictExpiredRoute
+  '/manager/approvals_/1': typeof ManagerApprovals1Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/change-pin'
+    | '/code-created'
+    | '/create-code'
+    | '/hadith'
+    | '/home'
+    | '/login'
+    | '/pending'
+    | '/register'
+    | '/guard/login'
+    | '/guard/verify'
+    | '/manager/approvals'
+    | '/manager/guards'
+    | '/manager/login'
+    | '/manager/residents'
+    | '/guard/verdict/access'
+    | '/guard/verdict/denied'
+    | '/guard/verdict/expired'
+    | '/manager/approvals/1'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/change-pin'
+    | '/code-created'
+    | '/create-code'
+    | '/hadith'
+    | '/home'
+    | '/login'
+    | '/pending'
+    | '/register'
+    | '/guard/login'
+    | '/guard/verify'
+    | '/manager/approvals'
+    | '/manager/guards'
+    | '/manager/login'
+    | '/manager/residents'
+    | '/guard/verdict/access'
+    | '/guard/verdict/denied'
+    | '/guard/verdict/expired'
+    | '/manager/approvals/1'
+  id:
+    | '__root__'
+    | '/'
+    | '/change-pin'
+    | '/code-created'
+    | '/create-code'
+    | '/hadith'
+    | '/home'
+    | '/login'
+    | '/pending'
+    | '/register'
+    | '/guard/login'
+    | '/guard/verify'
+    | '/manager/approvals'
+    | '/manager/guards'
+    | '/manager/login'
+    | '/manager/residents'
+    | '/guard/verdict/access'
+    | '/guard/verdict/denied'
+    | '/guard/verdict/expired'
+    | '/manager/approvals_/1'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChangePinRoute: typeof ChangePinRoute
+  CodeCreatedRoute: typeof CodeCreatedRoute
+  CreateCodeRoute: typeof CreateCodeRoute
+  HadithRoute: typeof HadithRoute
+  HomeRoute: typeof HomeRoute
+  LoginRoute: typeof LoginRoute
+  PendingRoute: typeof PendingRoute
+  RegisterRoute: typeof RegisterRoute
+  GuardLoginRoute: typeof GuardLoginRoute
+  GuardVerifyRoute: typeof GuardVerifyRoute
+  ManagerApprovalsRoute: typeof ManagerApprovalsRoute
+  ManagerGuardsRoute: typeof ManagerGuardsRoute
+  ManagerLoginRoute: typeof ManagerLoginRoute
+  ManagerResidentsRoute: typeof ManagerResidentsRoute
+  GuardVerdictAccessRoute: typeof GuardVerdictAccessRoute
+  GuardVerdictDeniedRoute: typeof GuardVerdictDeniedRoute
+  GuardVerdictExpiredRoute: typeof GuardVerdictExpiredRoute
+  ManagerApprovals1Route: typeof ManagerApprovals1Route
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +286,155 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/change-pin': {
+      id: '/change-pin'
+      path: '/change-pin'
+      fullPath: '/change-pin'
+      preLoaderRoute: typeof ChangePinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/code-created': {
+      id: '/code-created'
+      path: '/code-created'
+      fullPath: '/code-created'
+      preLoaderRoute: typeof CodeCreatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/create-code': {
+      id: '/create-code'
+      path: '/create-code'
+      fullPath: '/create-code'
+      preLoaderRoute: typeof CreateCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hadith': {
+      id: '/hadith'
+      path: '/hadith'
+      fullPath: '/hadith'
+      preLoaderRoute: typeof HadithRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending': {
+      id: '/pending'
+      path: '/pending'
+      fullPath: '/pending'
+      preLoaderRoute: typeof PendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guard/login': {
+      id: '/guard/login'
+      path: '/guard/login'
+      fullPath: '/guard/login'
+      preLoaderRoute: typeof GuardLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guard/verify': {
+      id: '/guard/verify'
+      path: '/guard/verify'
+      fullPath: '/guard/verify'
+      preLoaderRoute: typeof GuardVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manager/approvals': {
+      id: '/manager/approvals'
+      path: '/manager/approvals'
+      fullPath: '/manager/approvals'
+      preLoaderRoute: typeof ManagerApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manager/guards': {
+      id: '/manager/guards'
+      path: '/manager/guards'
+      fullPath: '/manager/guards'
+      preLoaderRoute: typeof ManagerGuardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manager/login': {
+      id: '/manager/login'
+      path: '/manager/login'
+      fullPath: '/manager/login'
+      preLoaderRoute: typeof ManagerLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manager/residents': {
+      id: '/manager/residents'
+      path: '/manager/residents'
+      fullPath: '/manager/residents'
+      preLoaderRoute: typeof ManagerResidentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guard/verdict/access': {
+      id: '/guard/verdict/access'
+      path: '/guard/verdict/access'
+      fullPath: '/guard/verdict/access'
+      preLoaderRoute: typeof GuardVerdictAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guard/verdict/denied': {
+      id: '/guard/verdict/denied'
+      path: '/guard/verdict/denied'
+      fullPath: '/guard/verdict/denied'
+      preLoaderRoute: typeof GuardVerdictDeniedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guard/verdict/expired': {
+      id: '/guard/verdict/expired'
+      path: '/guard/verdict/expired'
+      fullPath: '/guard/verdict/expired'
+      preLoaderRoute: typeof GuardVerdictExpiredRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manager/approvals_/1': {
+      id: '/manager/approvals_/1'
+      path: '/manager/approvals/1'
+      fullPath: '/manager/approvals/1'
+      preLoaderRoute: typeof ManagerApprovals1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChangePinRoute: ChangePinRoute,
+  CodeCreatedRoute: CodeCreatedRoute,
+  CreateCodeRoute: CreateCodeRoute,
+  HadithRoute: HadithRoute,
+  HomeRoute: HomeRoute,
+  LoginRoute: LoginRoute,
+  PendingRoute: PendingRoute,
+  RegisterRoute: RegisterRoute,
+  GuardLoginRoute: GuardLoginRoute,
+  GuardVerifyRoute: GuardVerifyRoute,
+  ManagerApprovalsRoute: ManagerApprovalsRoute,
+  ManagerGuardsRoute: ManagerGuardsRoute,
+  ManagerLoginRoute: ManagerLoginRoute,
+  ManagerResidentsRoute: ManagerResidentsRoute,
+  GuardVerdictAccessRoute: GuardVerdictAccessRoute,
+  GuardVerdictDeniedRoute: GuardVerdictDeniedRoute,
+  GuardVerdictExpiredRoute: GuardVerdictExpiredRoute,
+  ManagerApprovals1Route: ManagerApprovals1Route,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
