@@ -8,7 +8,10 @@ vi.mock("@/lib/staffAdmin", () => ({ pinAuth: mockPinAuth, staffAdmin: mockPinAu
 vi.mock("@/lib/supabase", () => ({ supabase: {} }));
 
 afterEach(cleanup);
-beforeEach(() => mockPinAuth.mockReset().mockResolvedValue({ ok: true }));
+beforeEach(() => {
+  localStorage.clear();
+  mockPinAuth.mockReset().mockResolvedValue({ ok: true });
+});
 
 function open() {
   render(
@@ -28,13 +31,13 @@ function fillStep1() {
   fireEvent.change(screen.getByLabelText("Full name"), { target: { value: "Aisha Bello" } });
   fireEvent.change(screen.getAllByLabelText("Phone")[0]!, { target: { value: "08025550110" } });
   fireEvent.change(screen.getByLabelText("Email"), { target: { value: "aisha@example.com" } });
-  fireEvent.change(screen.getByLabelText("House number"), { target: { value: "14" } });
+  fireEvent.change(screen.getByLabelText("House no."), { target: { value: "14" } });
 }
 
 function fillStep2() {
   fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Hauwa Bello" } });
   fireEvent.change(screen.getAllByLabelText("Phone")[1]!, { target: { value: "08065550191" } });
-  fireEvent.change(screen.getByLabelText("Relationship"), { target: { value: "Sister" } });
+  fireEvent.click(screen.getByRole("radio", { name: "Sibling" }));
 }
 
 function openPinStep() {
@@ -46,6 +49,7 @@ function openPinStep() {
 }
 
 function enterPin(label: string, digits: string) {
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${label}`) }));
   const group = within(screen.getByRole("group", { name: label }));
   for (const d of digits) fireEvent.click(group.getByRole("button", { name: d }));
 }
@@ -102,16 +106,38 @@ describe("Registration request", () => {
     fireEvent.change(screen.getByLabelText("Full name"), { target: { value: " Aisha Bello " } });
     fireEvent.change(screen.getAllByLabelText("Phone")[0]!, { target: { value: "08031234567" } });
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "a@b.com" } });
-    fireEvent.change(screen.getByLabelText("House number"), { target: { value: "014" } });
+    fireEvent.change(screen.getByLabelText("House no."), { target: { value: "014" } });
     next();
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Kin" } });
     fireEvent.change(screen.getAllByLabelText("Phone")[1]!, { target: { value: "0801" } });
-    fireEvent.change(screen.getByLabelText("Relationship"), { target: { value: "Brother" } });
+    fireEvent.click(screen.getByRole("radio", { name: "Parent" }));
     next();
     enterPin("Enter 6 digits", "482915");
     enterPin("Confirm your PIN", "482915");
     fireEvent.click(submit());
     expect(await screen.findByText("PENDING PAGE")).toBeInTheDocument();
-    expect(mockPinAuth).toHaveBeenCalledWith(expect.objectContaining({ action: "register", full_name: "Aisha Bello", house_number: "14", house_unit: "main", pin: "482915" }));
+    expect(mockPinAuth).toHaveBeenCalledWith(expect.objectContaining({ action: "register", full_name: "Aisha Bello", house_number: "14", house_unit: "main", nok_relationship: "Parent", pin: "482915" }));
+    expect(localStorage.getItem("lh.reg")).toBeNull();
+  });
+});
+
+describe("Onboarding helpers", () => {
+  it("starts with sensible defaults and a head start on progress", () => {
+    open();
+    expect(screen.getByRole("radio", { name: /Duplex/ })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByText("20%")).toBeInTheDocument();
+    fillStep1();
+    expect(screen.getByText("58%")).toBeInTheDocument();
+    next();
+    expect(screen.getByRole("radio", { name: /Spouse/ })).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("keeps typed details if the person leaves and comes back", () => {
+    open();
+    fillStep1();
+    cleanup();
+    open();
+    expect(screen.getByLabelText("Full name")).toHaveValue("Aisha Bello");
+    expect(screen.getByLabelText("House no.")).toHaveValue("14");
   });
 });
