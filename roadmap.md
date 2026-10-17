@@ -1,0 +1,3 @@
+- [x] Split registration into three steps and verify PIN confirmation.
+- [x] Add hadith attribution, hide visitor scrollbar, and ensure keyboard modes and Arabic font fallback.
+- [x] Verify the requested flows and existing tests.

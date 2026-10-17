@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Delete, ChevronDown, X } from "lucide-react";
 import { useEffect, useState, type ReactNode, type ButtonHTMLAttributes } from "react";
-import { hadith } from "@/mock/hadith";
+import { hadith, HADITH_ATTRIBUTION } from "@/mock/hadith";
 import { cn } from "@/lib/utils";
 
 export function meta(title: string, description: string) {
@@ -164,9 +164,10 @@ export function HadithLine({ className }: { className?: string }) {
     return () => clearInterval(t);
   }, []);
   return (
-    <p key={i} className={cn("animate-in fade-in duration-700 text-center text-sm italic leading-relaxed text-muted-foreground", className)}>
-      “{hadith[i]?.text}”
-    </p>
+    <div className={cn("text-center text-muted-foreground", className)}>
+      <p key={i} className="animate-in fade-in duration-700 text-sm italic leading-relaxed">“{hadith[i]?.text}”</p>
+      <p className="mt-2 text-xs leading-relaxed">{HADITH_ATTRIBUTION}</p>
+    </div>
   );
 }
 
