@@ -50,7 +50,7 @@ export function StaffSwitch({ value }: { value: StaffKind }) {
           role="tab"
           aria-selected={value === k}
           onClick={() => value !== k && nav(to, { replace: true })}
-          className={cn("min-h-9 rounded-full px-3.5 text-sm font-semibold", value === k ? "bg-white text-deep" : "text-white/85")}
+          className={cn("min-h-9 rounded-full px-3.5 text-sm font-semibold", value === k ? "bg-card text-deep" : "text-white/85")}
         >
           {label}
         </button>

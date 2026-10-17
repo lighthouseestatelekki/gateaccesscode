@@ -17,7 +17,7 @@ export function Wordmark({ className }: { className?: string }) {
         <path d="M13 2l3 4h-6z" fill="currentColor" />
         <path d="M18 7.5l6-2.5M18 8.5l6 2.5M8 7.5L2 5M8 8.5L2 11" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity=".6" />
       </svg>
-      <span className="whitespace-nowrap font-display text-[15px] font-extrabold uppercase tracking-[0.12em]">Lighthouse Estate</span>
+      <span className="whitespace-nowrap font-display text-[15px] font-extrabold uppercase tracking-[0.12em]">Light House Estate</span>
     </div>
   );
 }

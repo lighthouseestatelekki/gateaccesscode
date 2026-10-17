@@ -114,6 +114,36 @@
   --sidebar: oklch(1 0 0); --sidebar-foreground: oklch(0.205 0.02 160); --sidebar-primary: oklch(0.67 0.12 157); --sidebar-primary-foreground: oklch(1 0 0); --sidebar-accent: oklch(0.945 0.03 160); --sidebar-accent-foreground: oklch(0.29 0.05 162); --sidebar-border: oklch(0.93 0.012 150); --sidebar-ring: oklch(0.67 0.12 157);
 }
 
+/* Dark theme: the green header keeps its colours; cards and text flip. */
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.165 0.018 162);
+  --foreground: oklch(0.95 0.01 150);
+  --card: oklch(0.215 0.024 162);
+  --card-foreground: oklch(0.95 0.01 150);
+  --popover: oklch(0.215 0.024 162);
+  --popover-foreground: oklch(0.95 0.01 150);
+  --mint-light: oklch(0.33 0.055 160);
+  --mint-lightest: oklch(0.265 0.035 160);
+  --gold-light: oklch(0.34 0.06 90);
+  --gold-text: oklch(0.86 0.12 95);
+  --secondary: oklch(0.33 0.055 160);
+  --secondary-foreground: oklch(0.95 0.01 150);
+  --muted: oklch(0.27 0.02 160);
+  --muted-foreground: oklch(0.7 0.025 160);
+  --text-2: oklch(0.8 0.025 160);
+  --accent: oklch(0.33 0.055 160);
+  --accent-foreground: oklch(0.95 0.01 150);
+  --destructive: oklch(0.68 0.17 28);
+  --destructive-light: oklch(0.3 0.06 25);
+  --border: oklch(0.31 0.02 160);
+  --input: oklch(0.31 0.02 160);
+}
+.dark .lh-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23DDF3E6' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important; }
+.dark .text-deep { color: oklch(0.9 0.06 160); }
+.dark .bg-deep { background-color: var(--primary); color: oklch(0.15 0.02 162); }
+.dark .bg-deep.text-deep-foreground, .dark .bg-deep .text-deep-foreground { color: oklch(0.15 0.02 162); }
+
 @layer base {
   * {
     border-color: var(--color-border);

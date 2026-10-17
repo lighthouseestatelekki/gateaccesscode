@@ -241,8 +241,8 @@ function Home() {
         </section>
         {banner && (
           <div className="flex items-center gap-3 rounded-lg bg-mint-lightest p-3 pl-4">
-            <p className="flex-1 text-sm text-text-2">Add Lighthouse Estate to your Home Screen for quick access</p>
-            <button onClick={async () => { if (!(await promptInstall())) setHow(true); }} className="min-h-11 rounded-sm bg-card px-4 text-sm font-semibold text-deep">How</button>
+            <p className="flex-1 text-sm text-text-2">Install the app on this phone for quick access</p>
+            <button onClick={async () => { if (!(await promptInstall())) setHow(true); }} className="min-h-11 rounded-sm bg-card px-4 text-sm font-semibold text-deep">Install</button>
             <button onClick={() => setBanner(false)} aria-label="Dismiss" className="flex size-11 items-center justify-center text-muted-foreground"><X className="size-4" /></button>
           </div>
         )}
@@ -257,7 +257,7 @@ function Home() {
           </div>
         </section>
       </Sheet>
-      <BottomSheet open={how} onClose={() => setHow(false)} title="Add to Home Screen">
+      <BottomSheet open={how} onClose={() => setHow(false)} title="Install App">
         <div className="space-y-3 pb-4 text-base text-text-2">
           <p>iPhone: tap the Share icon, then Add to Home Screen.</p>
           <p>Android: tap the menu (three dots), then Add to Home screen.</p>

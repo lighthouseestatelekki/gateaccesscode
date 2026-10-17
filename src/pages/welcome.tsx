@@ -58,7 +58,7 @@ function Welcome() {
       {!ready ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-4" aria-busy="true">
           <div className="animate-pulse"><Logo size={72} /></div>
-          <p className="font-display text-2xl font-extrabold uppercase tracking-[0.12em]">Lighthouse Estate</p>
+          <p className="font-display text-2xl font-extrabold uppercase tracking-[0.12em]">Light House Estate</p>
           <p className="-mt-3 text-xs font-bold uppercase tracking-[0.3em] text-gold">Lekki</p>
           <p className="text-sm text-white/70">Assalam Alaekum</p>
         </div>
@@ -67,7 +67,7 @@ function Welcome() {
           <header className="flex items-center gap-2 px-5 pt-6 safe-top">
             <Wordmark />
           </header>
-          <h1 className="sr-only">Welcome to Lighthouse Estate</h1>
+          <h1 className="sr-only">Welcome to Light House Estate</h1>
           <div
             ref={strip}
             onScroll={(e) => {

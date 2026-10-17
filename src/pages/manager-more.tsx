@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BarChart3, ChevronRight, LogOut, Megaphone } from "lucide-react";
 import { Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
+import { ThemePicker } from "@/components/lh/ThemePicker";
 import { useManager } from "@/lib/useManager";
 
 export const title = "More";
@@ -24,6 +25,7 @@ function ManagerMore() {
           <li><Link to="/manager/announce" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><Megaphone className="size-5" /></span><span className="flex-1">Announcements</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/manager/insights" className={row}><span className={`${ico} bg-mint-light text-deep`}><BarChart3 className="size-5" /></span><span className="flex-1">Insights</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
         </ul>
+        <ThemePicker />
         <button
           onClick={async () => {
             await supabase.auth.signOut();

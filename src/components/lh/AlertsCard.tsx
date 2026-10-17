@@ -35,7 +35,7 @@ export function AlertsCard({ userId, tone = "light", className }: { userId: stri
         <BellRing className={cn("size-6 shrink-0", dark ? "text-gold" : "text-deep")} />
         <p className={cn("flex-1 text-sm", dark ? "text-deep-foreground/85" : "text-text-2")}>
           {status === "ios-install-first"
-            ? "To get alerts on iPhone: tap Share, then Add to Home Screen, then open Lighthouse from your Home Screen."
+            ? "To get alerts on iPhone: tap Share, then Add to Home Screen, then open Light House from your Home Screen."
             : status === "blocked"
               ? "Alerts are blocked for this site. Allow notifications in your phone's settings, then come back."
               : "Get alerts on this phone for visitors, announcements and SOS."}
