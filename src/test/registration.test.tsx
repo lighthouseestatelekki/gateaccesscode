@@ -25,7 +25,7 @@ function openPinStep() {
 
 function enterPin(label: string, digits: string) {
   const group = within(screen.getByRole("group", { name: label }));
-  for (const digit of digits) fireEvent.click(group.getByRole("button", { name: digit, exact: true }));
+  for (const digit of digits) fireEvent.click(group.getByRole("button", { name: digit }));
 }
 
 describe("Registration rules", () => {
