@@ -2,13 +2,29 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { LogOut, Plus, Share2, X } from "lucide-react";
 import { BottomSheet, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
+import { formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
-import { codes, recentVisitors } from "@/mock/data";
 import { dailyHadith, HADITH_ATTRIBUTION, hadith } from "@/mock/hadith";
 
 export const title = "Home";
+
+type AccessCodeRow = {
+  id: string;
+  code: string;
+  holder_name: string;
+  valid_to: string;
+  active: boolean;
+  used_at: string | null;
+  created_at: string;
+};
+
+function getCodeStatus(c: AccessCodeRow, now: Date): "Active" | "Used" | "Expired" {
+  if (c.used_at) return "Used";
+  if (c.active && new Date(c.valid_to).getTime() > now.getTime()) return "Active";
+  return "Expired";
+}
 
 function Home() {
   const nav = useNavigate();
@@ -16,12 +32,41 @@ function Home() {
   const [banner, setBanner] = useState(true);
   const [how, setHow] = useState(false);
   const [h, setH] = useState(hadith[0]!);
+  const [codes, setCodes] = useState<AccessCodeRow[]>([]);
+
   useEffect(() => setH(dailyHadith()!), []);
+
+  useEffect(() => {
+    if (!profile) return;
+    let active = true;
+    supabase
+      .from("access_codes")
+      .select("id,code,holder_name,valid_to,active,used_at,created_at")
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        if (active && data) setCodes(data as AccessCodeRow[]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [profile]);
 
   if (!profile) return null;
 
   const firstName = profile.full_name.trim().split(/\s+/)[0] ?? "";
   const unitLabel = codeToUnit(profile.house_unit);
+
+  const recentVisitors: string[] = [];
+  for (const c of codes) {
+    const name = c.holder_name.trim();
+    if (name && !recentVisitors.includes(name)) {
+      recentVisitors.push(name);
+      if (recentVisitors.length === 4) break;
+    }
+  }
+
+  const now = new Date();
 
   return (
     <Screen>
@@ -66,16 +111,22 @@ function Home() {
           </div>
         </section>
 
-        <section>
-          <h2 className="mb-3 text-lg font-semibold">Recent visitors</h2>
-          <div className="scrollbar-hidden -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
-            {recentVisitors.slice(0, 4).map((n) => (
-              <button key={n} onClick={() => nav("/create-code")} className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-4 text-sm font-medium">
-                <span className="flex size-9 items-center justify-center rounded-full bg-mint-light font-display font-semibold text-deep">{n[0]}</span>{n}
-              </button>
-            ))}
-          </div>
-        </section>
+        {recentVisitors.length > 0 && (
+          <section>
+            <h2 className="mb-3 text-lg font-semibold">Recent visitors</h2>
+            <div className="scrollbar-hidden -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+              {recentVisitors.map((n) => (
+                <button
+                  key={n}
+                  onClick={() => nav("/create-code", { state: { holderName: n } })}
+                  className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-4 text-sm font-medium"
+                >
+                  <span className="flex size-9 items-center justify-center rounded-full bg-mint-light font-display font-semibold text-deep">{n[0]}</span>{n}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section>
           <h2 className="mb-3 text-lg font-semibold">My codes</h2>
@@ -83,27 +134,49 @@ function Home() {
             <p className="rounded-lg bg-muted p-6 text-center text-text-2">No codes yet.</p>
           ) : (
             <ul className="space-y-3">
-              {codes.map((c) => (
-                <li key={c.code} className="rounded-lg border border-border bg-card p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className={`code-digits text-3xl font-bold ${c.status === "Active" ? "text-deep" : "text-muted-foreground"}`}>{c.code}</p>
-                    <StatusChip status={c.status} />
-                  </div>
-                  <p className="mt-1 font-medium">{c.visitor}</p>
-                  <p className="text-sm text-muted-foreground">Until {c.expiry}</p>
-                  <div className="mt-3 flex gap-2">
-                    {c.status === "Active" ? (
-                      <>
-                        <button aria-label="Share" className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep"><Share2 className="size-5" /></button>
-                        <button className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold">Extend</button>
-                        <button className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold text-destructive">Cancel</button>
-                      </>
-                    ) : (
-                      <Link to="/create-code" className="flex min-h-11 flex-1 items-center justify-center rounded-sm border border-border text-sm font-semibold text-deep">Create again</Link>
-                    )}
-                  </div>
-                </li>
-              ))}
+              {codes.map((c) => {
+                const status = getCodeStatus(c, now);
+                return (
+                  <li key={c.id} className="rounded-lg border border-border bg-card p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className={`code-digits text-3xl font-bold ${status === "Active" ? "text-deep" : "text-muted-foreground"}`}>{formatCode(c.code)}</p>
+                      <StatusChip status={status} />
+                    </div>
+                    <p className="mt-1 font-medium">{c.holder_name}</p>
+                    <p className="text-sm text-muted-foreground">{formatUntil(c.valid_to, now)}</p>
+                    <div className="mt-3 flex gap-2">
+                      {status === "Active" ? (
+                        <>
+                          <button
+                            aria-label="Share"
+                            onClick={() =>
+                              shareAccessCode({
+                                code: c.code,
+                                validTo: c.valid_to,
+                                houseNumber: profile.house_number,
+                                unitLabel,
+                              })
+                            }
+                            className="flex size-11 items-center justify-center rounded-sm bg-mint-light text-deep"
+                          >
+                            <Share2 className="size-5" />
+                          </button>
+                          <button className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold">Extend</button>
+                          <button className="min-h-11 flex-1 rounded-sm border border-border text-sm font-semibold text-destructive">Cancel</button>
+                        </>
+                      ) : (
+                        <Link
+                          to="/create-code"
+                          state={{ holderName: c.holder_name }}
+                          className="flex min-h-11 flex-1 items-center justify-center rounded-sm border border-border text-sm font-semibold text-deep"
+                        >
+                          Create again
+                        </Link>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>
