@@ -13,6 +13,8 @@ const { mockSignInWithPassword, mockSignOut, mockGetSession, mockSingle, mockRpc
   mockRpc: vi.fn(),
 }));
 
+vi.mock("@/lib/useMe", () => ({ useMe: () => null }));
+
 vi.mock("@/lib/staffAdmin", () => ({
   pinSignIn: (...args: unknown[]) => mockSignInWithPassword(...args),
   pinAuth: vi.fn(),

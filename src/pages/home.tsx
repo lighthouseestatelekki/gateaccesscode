@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { Bell, LogOut, Plus, Share2, ShieldAlert, X } from "lucide-react";
 import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
+import { AlertsCard } from "@/components/lh/AlertsCard";
 import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, StatusChip, Wordmark } from "@/components/lh/ui";
 import { computeExpiry, formatCode, formatUntil, shareAccessCode } from "@/lib/expiry";
 import { isInstalled, promptInstall } from "@/lib/install";
@@ -170,6 +171,8 @@ function Home() {
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
+
+        <AlertsCard userId={me?.id} />
 
         {banner && (
           <div className="flex items-center gap-3 rounded-lg bg-mint-lightest p-3 pl-4">

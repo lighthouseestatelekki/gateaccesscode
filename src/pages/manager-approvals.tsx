@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ChevronRight, LogOut, Megaphone } from "lucide-react";
 import { Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
+import { AlertsCard } from "@/components/lh/AlertsCard";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { useManager } from "@/lib/useManager";
@@ -62,6 +63,7 @@ function Approvals() {
         </div>
       </Hero>
       <Sheet>
+        <AlertsCard userId={me.id} className="mb-5" />
         <h2 className="mb-3 text-lg font-semibold">Waiting for approval</h2>
         {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
         {list && list.length === 0 && <p className="rounded-lg bg-muted p-6 text-center text-text-2">No one is waiting for approval.</p>}

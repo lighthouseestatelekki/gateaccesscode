@@ -5,6 +5,8 @@ import { Keypad, PinDigits } from "@/components/lh/guard";
 import { usePin } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { useGuard } from "@/lib/useGuard";
+import { useMe } from "@/lib/useMe";
+import { AlertsCard } from "@/components/lh/AlertsCard";
 
 export const title = "Check code";
 
@@ -21,6 +23,7 @@ type VerifyResult = {
 function Verify() {
   const nav = useNavigate();
   const profile = useGuard();
+  const me = useMe();
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState("");
 
@@ -101,6 +104,7 @@ function Verify() {
           <LogOut className="size-5" />
         </Link>
       </div>
+      <AlertsCard userId={me?.id} tone="dark" className="mt-4" />
       <p className="mt-10 text-center text-lg text-deep-foreground/70">Enter visitor code</p>
       <div className="mt-5"><PinDigits value={pin.value} /></div>
       {error && <p role="alert" className="text-center text-base font-semibold text-red-300">{error}</p>}
