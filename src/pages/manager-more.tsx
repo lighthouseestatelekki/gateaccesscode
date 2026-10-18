@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { ThemePicker } from "@/components/lh/ThemePicker";
+import { WeeklyEmailToggle } from "@/components/lh/WeeklyEmailToggle";
 import { useManager } from "@/lib/useManager";
 
 export const title = "More";
@@ -40,6 +41,7 @@ function ManagerMore() {
           <li><Link to="/manager/history" className={row}><span className={`${ico} bg-mint-light text-deep`}><History className="size-5" /></span><span className="flex-1">Action history</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/manager/insights" className={row}><span className={`${ico} bg-mint-light text-deep`}><BarChart3 className="size-5" /></span><span className="flex-1">Insights</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
         </ul>
+        <WeeklyEmailToggle />
         <ThemePicker />
         <button
           onClick={async () => {

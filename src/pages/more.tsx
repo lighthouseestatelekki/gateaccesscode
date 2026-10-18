@@ -6,6 +6,7 @@ import { ResidentTabs } from "@/components/lh/nav";
 import { isInstalled, promptInstall } from "@/lib/install";
 import { supabase } from "@/lib/supabase";
 import { ThemePicker } from "@/components/lh/ThemePicker";
+import { WeeklyEmailToggle } from "@/components/lh/WeeklyEmailToggle";
 import { LangPicker } from "@/components/lh/LangPicker";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
@@ -87,6 +88,7 @@ function More() {
           <li><Link to="/privacy" className={row}><span className={`${ico} bg-mint-light text-deep`}><ShieldCheck className="size-5" /></span><span className="flex-1">Privacy notice</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><DownloadMyData /></li>
         </ul>
+        <WeeklyEmailToggle />
         <OtherDevices />
         <LangPicker />
         <ThemePicker />

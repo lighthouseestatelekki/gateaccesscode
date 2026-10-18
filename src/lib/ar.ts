@@ -169,6 +169,10 @@ export const AR: Record<string, string> = {
   "Visitor name": "اسم الزائر",
   "e.g. Ibrahim Yusuf": "مثال: إبراهيم يوسف",
   "Works for one entry and one exit.": "يصلح لدخول واحد وخروج واحد.",
+  // ---- weekly email ----
+  "Weekly summary email": "ملخص أسبوعي بالبريد",
+  "Every Monday morning: visitors, codes and anything open.": "كل صباح اثنين: الزوار والرموز وما يزال مفتوحًا.",
+  "Add an email address to get this.": "أضف بريدًا إلكترونيًا لتصلك هذه الرسالة.",
   // ---- moving out & privacy ----
   "Moving out": "الانتقال من المنزل",
   "Download my data": "تنزيل بياناتي",
