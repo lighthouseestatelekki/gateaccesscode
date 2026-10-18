@@ -153,8 +153,9 @@ describe("Create access code page", () => {
     expect(await screen.findByText("184 302")).toBeInTheDocument();
     expect(screen.getByText("Ibrahim Yusuf")).toBeInTheDocument();
 
-    expect(mockRpc).toHaveBeenCalledTimes(1);
-    const [fnName, args] = mockRpc.mock.calls[0]!;
+    const creates = mockRpc.mock.calls.filter((c) => c[0] === "create_guest_code");
+    expect(creates).toHaveLength(1);
+    const [fnName, args] = creates[0]!;
     expect(fnName).toBe("create_guest_code");
     expect(args.p_holder_name).toBe("Ibrahim Yusuf");
     expect(() => new Date(args.p_valid_to).toISOString()).not.toThrow();
@@ -167,7 +168,7 @@ describe("Create access code page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create code" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("Please enter the visitor's name.");
-    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockRpc.mock.calls.filter((c) => c[0] === "create_guest_code")).toHaveLength(0);
   });
 });
 

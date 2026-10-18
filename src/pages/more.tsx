@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { BarChart3, BookOpen, ChevronRight, KeyRound, LogOut, ShieldAlert, Smartphone, Wrench } from "lucide-react";
+import { BarChart3, BookOpen, ChevronRight, KeyRound, LogOut, ShieldAlert, Smartphone, UsersRound, Wrench } from "lucide-react";
 import { BottomSheet, Hero, Screen, Sheet } from "@/components/lh/ui";
 import { ResidentTabs } from "@/components/lh/nav";
 import { isInstalled, promptInstall } from "@/lib/install";
@@ -9,6 +9,24 @@ import { ThemePicker } from "@/components/lh/ThemePicker";
 import { LangPicker } from "@/components/lh/LangPicker";
 import { codeToUnit } from "@/lib/units";
 import { useResident } from "@/lib/useResident";
+
+/** Sign out every other phone where I'm signed in (keeps this one). */
+function OtherDevices() {
+  const [state, setState] = useState<"idle" | "busy" | "done">("idle");
+  return (
+    <button
+      disabled={state !== "idle"}
+      onClick={async () => {
+        setState("busy");
+        await supabase.auth.signOut({ scope: "others" });
+        setState("done");
+      }}
+      className="flex min-h-14 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-[15px] font-semibold text-deep"
+    >
+      {state === "done" ? "Signed out of your other phones" : state === "busy" ? "Signing out…" : "Sign out of my other phones"}
+    </button>
+  );
+}
 
 export const title = "More";
 
@@ -29,6 +47,7 @@ function More() {
       </Hero>
       <Sheet className="space-y-4 pb-6">
         <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+          <li><Link to="/household" className={row}><span className={`${ico} bg-mint-light text-deep`}><UsersRound className="size-5" /></span><span className="flex-1">My household</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/fixit" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><Wrench className="size-5" /></span><span className="flex-1">Fix-It requests</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/insights" className={row}><span className={`${ico} bg-mint-light text-deep`}><BarChart3 className="size-5" /></span><span className="flex-1">Insights</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/hadith" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><BookOpen className="size-5" /></span><span className="flex-1">Hadith</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
@@ -38,6 +57,7 @@ function More() {
           )}
           <li><Link to="/sos" className={row}><span className={`${ico} bg-destructive/10 text-destructive`}><ShieldAlert className="size-5" /></span><span className="flex-1">SOS emergency</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
         </ul>
+        <OtherDevices />
         <LangPicker />
         <ThemePicker />
         <button

@@ -161,7 +161,7 @@ create or replace function public.acknowledge_sos(p_id uuid)
 returns public.sos_alerts language plpgsql security definer set search_path = public as $$
 declare v public.sos_alerts; nm text;
 begin
-  if public.auth_role() not in ('guard','estate_manager') then
+  if coalesce(public.auth_role(), '') not in ('guard','estate_manager') then
     raise exception 'Only guards and the Estate Manager can acknowledge SOS';
   end if;
   select coalesce(case when role = 'guard' then 'Guard ' || guard_number else full_name end, full_name)
@@ -180,7 +180,7 @@ create or replace function public.close_sos(p_id uuid, p_outcome text)
 returns public.sos_alerts language plpgsql security definer set search_path = public as $$
 declare v public.sos_alerts;
 begin
-  if public.auth_role() not in ('guard','estate_manager') then
+  if coalesce(public.auth_role(), '') not in ('guard','estate_manager') then
     raise exception 'Only guards and the Estate Manager can close SOS';
   end if;
   if p_outcome not in ('resolved','false_alarm') then raise exception 'Outcome must be resolved or false_alarm'; end if;

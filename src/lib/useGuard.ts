@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { getCached, setCached } from "@/lib/profileCache";
+import { signedOutElsewhere } from "@/lib/sessionCheck";
 
 export type GuardProfile = {
   role: string;
@@ -41,6 +42,8 @@ export function useGuard(): GuardProfile | null {
       }
 
       setCached("guard", data);
+      // Signed out of every device by the Estate Manager? Leave now.
+      signedOutElsewhere().then((out) => out && nav("/guard/login", { replace: true }));
       setProfile(data as GuardProfile);
     }
     load();

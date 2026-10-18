@@ -5,6 +5,7 @@ import { isWeakPin } from "@/lib/pin";
 import { staffAdmin } from "@/lib/staffAdmin";
 import { supabase } from "@/lib/supabase";
 import { useManager } from "@/lib/useManager";
+import { SignOutEverywhere } from "@/components/lh/SignOutEverywhere";
 
 export const title = "Guards";
 
@@ -22,6 +23,19 @@ function Guards() {
   const [error, setError] = useState("");
   const [done, setDone] = useState("");
   const [suggested, setSuggested] = useState("");
+  const [picked, setPicked] = useState<Guard | null>(null);
+  const [resetTemp, setResetTemp] = useState("");
+  async function resetGuardPin(g: Guard) {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await staffAdmin<{ temp_pin: string }>({ action: "reset_pin", profile_id: g.id });
+      setResetTemp(r.temp_pin);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+    setBusy(false);
+  }
 
   function suggestPin() {
     let p = "";
@@ -90,16 +104,34 @@ function Guards() {
         {done && <p role="status" className="rounded-lg bg-mint-lightest p-3 text-sm font-medium text-deep">{done}</p>}
         <ul className="divide-y divide-border">
           {(list ?? []).map((g) => (
-            <li key={g.id} className="flex min-h-16 items-center gap-3 py-3">
+            <li key={g.id}>
+             <button onClick={() => { setPicked(g); setResetTemp(""); setError(""); }} className="flex min-h-16 w-full items-center gap-3 py-3 text-left">
               <span className="flex size-11 items-center justify-center rounded-full bg-deep font-display font-semibold text-deep-foreground">{g.guard_number}</span>
               <span className="flex-1"><span className="block font-semibold">Guard {g.guard_number}</span><span className="block text-sm text-text-2">{g.full_name} · Gate {g.assigned_gate}</span></span>
               <span className="rounded-full bg-mint-light px-2.5 py-0.5 text-xs font-semibold capitalize text-deep">{g.status}</span>
+             </button>
             </li>
           ))}
           {list && list.length === 0 && <li className="py-6 text-center text-text-2">No guards yet.</li>}
         </ul>
       </Sheet>
       <ManagerTabs />
+      <BottomSheet open={!!picked} onClose={() => !busy && setPicked(null)} title={picked ? `Guard ${picked.guard_number} · ${picked.full_name}` : ""}>
+        {picked && (
+          <div className="space-y-3 pb-4">
+            {resetTemp ? (
+              <div className="space-y-2 text-center">
+                <p className="code-digits rounded-2xl bg-mint-lightest py-5 text-4xl font-bold text-deep">{resetTemp.slice(0, 3)} {resetTemp.slice(3)}</p>
+                <p className="text-sm text-text-2">Temporary PIN. The guard chooses their own at next sign-in.</p>
+              </div>
+            ) : (
+              <Button variant="secondary" disabled={busy} onClick={() => resetGuardPin(picked)}>{busy ? "Resetting…" : "Reset PIN"}</Button>
+            )}
+            <SignOutEverywhere key={picked.id} userId={picked.id} name={`Guard ${picked.guard_number}`} />
+            {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
+          </div>
+        )}
+      </BottomSheet>
       <BottomSheet open={open} onClose={() => !busy && setOpen(false)} title="Add guard">
         <div className="space-y-4 pb-4">
           <div className="grid grid-cols-2 gap-3">

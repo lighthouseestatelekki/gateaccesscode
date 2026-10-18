@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { getCached, setCached } from "@/lib/profileCache";
+import { signedOutElsewhere } from "@/lib/sessionCheck";
 
 export type ResidentProfile = {
   role: string;
@@ -49,6 +50,8 @@ export function useResident(): ResidentProfile | null {
       }
 
       setCached("resident", data);
+      // Signed out of every device by the Estate Manager? Leave now.
+      signedOutElsewhere().then((out) => out && nav("/login", { replace: true }));
       setProfile(data as ResidentProfile);
     }
     load();

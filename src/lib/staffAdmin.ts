@@ -51,6 +51,11 @@ export async function pinSignIn(params: { kind: "resident"; house_number: string
     const r = await pinAuth<{ access_token: string; refresh_token: string }>({ action: "login", ...params, device: deviceId() });
     const { data, error } = await supabase.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
     if (error || !data.user) return { data: { user: null }, error: { message: error?.message ?? "Could not sign in." } };
+    try {
+      localStorage.setItem("lh.active", String(Date.now())); // just signed in: not locked
+    } catch {
+      /* ignore */
+    }
     return { data: { user: { id: data.user.id } }, error: null };
   } catch (e) {
     return { data: { user: null }, error: { message: (e as Error).message } };

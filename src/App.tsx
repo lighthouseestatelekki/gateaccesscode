@@ -20,10 +20,12 @@ import * as Sos from "@/pages/sos";
 import * as ManagerAnnounce from "@/pages/manager-announce";
 import { SosWatcher } from "@/components/lh/SosWatcher";
 import { UpdateBanner } from "@/components/lh/UpdateBanner";
+import { AppLock } from "@/components/lh/AppLock";
 import * as Home from "@/pages/home";
 import * as Welcome from "@/pages/welcome";
 import * as More from "@/pages/more";
 import * as Fixit from "@/pages/fixit";
+import * as Household from "@/pages/household";
 import * as ManagerFixit from "@/pages/manager-fixit";
 import * as ManagerMore from "@/pages/manager-more";
 import * as Login from "@/pages/login";
@@ -58,10 +60,12 @@ export default function App() {
     <LangSync />
     <SosWatcher />
     <UpdateBanner />
+    <AppLock />
     <Routes>
       <Route path="/" element={<Page title={Welcome.title}><Welcome.default /></Page>} />
         <Route path="/more" element={<Page title={More.title}><More.default /></Page>} />
         <Route path="/fixit" element={<Page title={Fixit.title}><Fixit.default /></Page>} />
+        <Route path="/household" element={<Page title={Household.title}><Household.default /></Page>} />
         <Route path="/manager/fixit" element={<Page title={ManagerFixit.title}><ManagerFixit.default /></Page>} />
         <Route path="/manager/more" element={<Page title={ManagerMore.title}><ManagerMore.default /></Page>} />
         <Route path="/change-pin" element={<Page title={ChangePin.title}><ChangePin.default /></Page>} />

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { getCached, setCached } from "@/lib/profileCache";
+import { signedOutElsewhere } from "@/lib/sessionCheck";
+import { mfaState } from "@/lib/mfa";
 
 export type ManagerProfile = { id: string; role: string; status: string; full_name: string };
 
@@ -25,7 +27,14 @@ export function useManager(): ManagerProfile | null {
         nav("/manager/login", { replace: true });
         return;
       }
+      // Signed in with the password only: finish the authenticator step first.
+      if ((await mfaState()) !== "verified") {
+        if (alive) nav("/manager/login", { replace: true });
+        return;
+      }
       setCached("manager", data);
+      // Signed out of every device by the Estate Manager? Leave now.
+      signedOutElsewhere().then((out) => out && nav("/manager/login", { replace: true }));
       setProfile(data as ManagerProfile);
     })();
     return () => {

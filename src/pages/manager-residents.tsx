@@ -6,10 +6,11 @@ import { staffAdmin } from "@/lib/staffAdmin";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { useManager } from "@/lib/useManager";
+import { SignOutEverywhere } from "@/components/lh/SignOutEverywhere";
 
 export const title = "Residents";
 
-type Resident = { id: string; full_name: string; house_number: string; house_unit: string; phone: string | null; status: string };
+type Resident = { id: string; full_name: string; house_number: string; house_unit: string; phone: string | null; status: string; household_role?: string | null; relation?: string | null };
 
 function Residents() {
   const me = useManager();
@@ -24,13 +25,13 @@ function Residents() {
     if (!me) return;
     supabase
       .from("profiles")
-      .select("id,full_name,house_number,house_unit,phone,status")
+      .select("*")
       .eq("role", "resident")
       .in("status", ["active", "suspended"])
       .then(({ data, error: err }) => {
         if (err) setError(err.message);
         const rows = (data ?? []) as Resident[];
-        rows.sort((a, b) => Number(a.house_number) - Number(b.house_number) || a.house_unit.localeCompare(b.house_unit));
+        rows.sort((a, b) => Number(a.house_number) - Number(b.house_number) || a.house_unit.localeCompare(b.house_unit) || (a.household_role === "member" ? 1 : 0) - (b.household_role === "member" ? 1 : 0));
         setAll(rows);
       });
   }, [me]);
@@ -77,7 +78,7 @@ function Residents() {
                 <span className="flex size-11 items-center justify-center rounded-full bg-mint-light font-display font-semibold text-deep">{r.house_number}</span>
                 <span className="flex-1">
                   <span className="block font-semibold">{r.full_name}</span>
-                  <span className="block text-sm text-text-2">House {r.house_number} · {codeToUnit(r.house_unit)}{r.status === "suspended" ? " · Suspended" : ""}</span>
+                  <span className="block text-sm text-text-2">House {r.house_number} · {codeToUnit(r.house_unit)}{r.household_role === "member" ? ` · Household member${r.relation ? ` (${r.relation})` : ""}` : ""}{r.status === "suspended" ? " · Suspended" : ""}</span>
                 </span>
                 <ChevronRight className="size-5 text-muted-foreground" />
               </button>
@@ -97,6 +98,7 @@ function Residents() {
             {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
             <Link to={`/manager/house/${sel.id}`} className={btnClass("primary")}>Codes for this house</Link>
             <Button variant="secondary" disabled={busy} onClick={resetPin}>{busy ? "Resetting…" : "Reset PIN"}</Button>
+            <SignOutEverywhere key={sel.id} userId={sel.id} name={sel.full_name} />
           </div>
         )}
       </BottomSheet>

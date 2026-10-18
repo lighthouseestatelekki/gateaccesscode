@@ -63,7 +63,7 @@ returns public.fixit_requests
 language plpgsql security definer set search_path = public as $$
 declare r public.fixit_requests;
 begin
-  if public.auth_role() <> 'estate_manager' then raise exception 'Only the Estate Manager can do this'; end if;
+  if public.auth_role() is distinct from 'estate_manager' then raise exception 'Only the Estate Manager can do this'; end if;
   if p_status not in ('open','in_progress','done') then raise exception 'Unknown status'; end if;
   update public.fixit_requests
      set status = p_status,
