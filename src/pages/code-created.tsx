@@ -14,6 +14,7 @@ type CodeCreatedState = {
   valid_to?: string;
   valid_from?: string;
   type?: string;
+  delivery?: boolean;
 };
 
 function CodeCreated() {
@@ -40,6 +41,7 @@ function CodeCreated() {
         <p className="code-digits mt-3 text-6xl font-bold text-gold">{formatCode(state!.code!)}</p>
         <p className="mt-4 text-lg font-semibold">{state!.holder_name}</p>
         <p className="text-sm text-deep-foreground/70">{formatValidity({ type: state!.type, valid_from: state!.valid_from, valid_to: state!.valid_to! })}</p>
+        {state!.delivery && <span className="mt-2 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider">Quick delivery · 30 minutes</span>}
         {state!.type === "long_stay" && <span className="mt-2 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider">Long stay · come and go</span>}
       </Hero>
       <Sheet className="space-y-3">
@@ -58,6 +60,7 @@ function CodeCreated() {
               unitLabel: codeToUnit(profile.house_unit),
               type: state!.type,
               validFrom: state!.valid_from,
+              delivery: !!state!.delivery,
             });
           }}
         >

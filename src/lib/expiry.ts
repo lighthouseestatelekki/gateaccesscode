@@ -173,6 +173,7 @@ export async function shareAccessCode(params: {
   hostName?: string | null | undefined;
   type?: string | null | undefined;
   validFrom?: string | null | undefined;
+  delivery?: boolean;
 }): Promise<void> {
   const validTo = typeof params.validTo === "string" ? params.validTo : params.validTo.toISOString();
   const when = formatValidity({ type: params.type, valid_from: params.validFrom, valid_to: validTo });
@@ -180,6 +181,7 @@ export async function shareAccessCode(params: {
   const message = gateMessage({
     code: params.code, hostName: params.hostName, houseNumber: params.houseNumber, unitLabel: params.unitLabel, whenLine,
     ...(params.type === "long_stay" ? { extra: "You can come and go as often as you need until then." } : {}),
+    ...(params.delivery ? { extra: "Delivery pass: one entry and one exit within 30 minutes." } : {}),
   });
   return shareText(message);
 }

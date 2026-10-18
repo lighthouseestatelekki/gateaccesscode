@@ -1,3 +1,4 @@
+import { QuickDelivery } from "@/components/lh/QuickDelivery";
 import { useLocation } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { Hero, Screen, Sheet } from "@/components/lh/ui";
@@ -76,6 +77,7 @@ function Codes() {
         </div>
       </Hero>
       <Sheet className="space-y-4">
+        <QuickDelivery variant="chip" />
         <div className="flex gap-2">
           <label className="sr-only" htmlFor="kind">Type</label>
           <select id="kind" value={kind} onChange={(e) => setKind(e.target.value as Kind)} className={chipSelect} style={caret}>

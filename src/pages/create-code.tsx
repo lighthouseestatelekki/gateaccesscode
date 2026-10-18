@@ -8,6 +8,7 @@ import { computeExpiry, formatUntil, lagosDateInput, lagosDay, lagosEndOf, lagos
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useResident } from "@/lib/useResident";
+import { createDeliveryPass, DELIVERY_MINUTES } from "@/lib/delivery";
 
 export const title = "Create access code";
 
@@ -18,7 +19,7 @@ function CreateCode() {
 
   const initialName = (location.state as { holderName?: string } | null)?.holderName ?? "";
   const [name, setName] = useState(initialName);
-  const [kind, setKind] = useState<"guest" | "long_stay">("guest");
+  const [kind, setKind] = useState<"guest" | "long_stay" | "delivery">("guest");
   const [sel, setSel] = useState(() => defaultExpiry());
   const [recent, setRecent] = useState<string[]>([]);
   const [fromDate, setFromDate] = useState(() => lagosDateInput());
@@ -49,13 +50,26 @@ function CreateCode() {
 
   const now = new Date();
   const until =
-    kind === "long_stay"
+    kind === "delivery"
+      ? `${DELIVERY_MINUTES} minutes from now`
+      : kind === "long_stay"
       ? fromDate && toDate ? `${lagosDay(lagosStartOf(fromDate, now))} to ${lagosDay(lagosEndOf(toDate))}` : "Choose the days"
       : sel === "Pick date and time"
         ? picked ? formatUntil(computeExpiry(sel, now, picked), now) : "Choose a date and time"
         : formatUntil(computeExpiry(sel, now), now);
 
   async function handleCreate() {
+    if (kind === "delivery") {
+      setError("");
+      setCreating(true);
+      try {
+        nav("/code-created", { state: await createDeliveryPass() });
+      } catch (e) {
+        setError((e as Error).message);
+        setCreating(false);
+      }
+      return;
+    }
     const trimmed = name.trim();
     if (!trimmed) {
       setError("Please enter the visitor's name.");
@@ -136,10 +150,10 @@ function CreateCode() {
         {/* The visitor's pass, filling in as you choose. The code itself appears once it's created. */}
         <div className="mt-4 rounded-[20px] bg-white/10 p-4 ring-1 ring-white/15">
           <div className="flex items-center gap-3">
-            {name.trim() ? <Initial name={name} className="size-11 text-lg" /> : <span className="flex size-11 items-center justify-center rounded-full bg-white/15 font-display text-lg font-bold">?</span>}
+            {kind === "delivery" ? <Initial name="Delivery" className="size-11 text-lg" /> : name.trim() ? <Initial name={name} className="size-11 text-lg" /> : <span className="flex size-11 items-center justify-center rounded-full bg-white/15 font-display text-lg font-bold">?</span>}
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-xl font-bold leading-tight">{name.trim() || "Visitor name"}</p>
-              <p className="text-sm text-deep-foreground/75">{kind === "long_stay" ? "Long stay · come and go" : "One visit"}</p>
+              <p className="truncate font-display text-xl font-bold leading-tight">{kind === "delivery" ? "Delivery" : name.trim() || "Visitor name"}</p>
+              <p className="text-sm text-deep-foreground/75">{kind === "long_stay" ? "Long stay · come and go" : kind === "delivery" ? "Quick delivery · in and out" : "One visit"}</p>
             </div>
           </div>
           <div className="mt-3 flex items-end justify-between gap-3 border-t border-dashed border-white/25 pt-3">
@@ -149,7 +163,7 @@ function CreateCode() {
         </div>
       </Hero>
       <Sheet className="space-y-5">
-        <div>
+        {kind !== "delivery" && <div>
           <Field label="Visitor name" placeholder="e.g. Ibrahim Yusuf" value={name} onChange={(e) => setName(e.target.value)} />
           {recent.length > 0 && (
             <div className="scrollbar-hidden -mx-5 mt-2 flex gap-2 overflow-x-auto px-5" aria-label="Recent visitors">
@@ -160,21 +174,21 @@ function CreateCode() {
               ))}
             </div>
           )}
-        </div>
+        </div>}
         <div>
           <p className="mb-2 text-sm font-medium text-text-2">Type of visit</p>
-          <div role="radiogroup" aria-label="Type of visit" className="grid grid-cols-2 gap-2 rounded-2xl bg-muted p-1">
-            {([["guest", "One visit"], ["long_stay", "Long stay"]] as const).map(([k, l]) => (
+          <div role="radiogroup" aria-label="Type of visit" className="grid grid-cols-3 gap-1 rounded-2xl bg-muted p-1">
+            {([["guest", "One visit"], ["long_stay", "Long stay"], ["delivery", "Delivery"]] as const).map(([k, l]) => (
               <button key={k} role="radio" aria-checked={kind === k} onClick={() => { setKind(k); setError(""); }} className={cn("min-h-12 rounded-xl text-base font-semibold transition-colors", kind === k ? "bg-card text-deep shadow-sm" : "text-text-2")}>
                 {l}
               </button>
             ))}
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            {kind === "guest" ? "Works for one entry and one exit." : "They can come and go as often as needed, for up to 30 days."}
+            {kind === "guest" ? "Works for one entry and one exit." : kind === "delivery" ? `No typing needed. Works for ${DELIVERY_MINUTES} minutes: one entry and one exit.` : "They can come and go as often as needed, for up to 30 days."}
           </p>
         </div>
-        {kind === "guest" ? (
+        {kind === "delivery" ? null : kind === "guest" ? (
           <ExpiryOptions value={sel} onChange={setSel} picked={picked} onPickedChange={setPicked} />
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -190,7 +204,7 @@ function CreateCode() {
           </div>
         )}
         {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
-        <Button disabled={creating} onClick={handleCreate}>{creating ? "Creating…" : "Create code"}</Button>
+        <Button disabled={creating} onClick={handleCreate}>{creating ? "Creating…" : kind === "delivery" ? "Create delivery pass" : "Create code"}</Button>
       </Sheet>
     </Screen>
   );

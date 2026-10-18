@@ -1,3 +1,4 @@
+import { QuickDelivery } from "@/components/lh/QuickDelivery";
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { Plus, ShieldAlert } from "lucide-react";
@@ -173,6 +174,7 @@ function Home() {
       </Hero>
       <Sheet className="space-y-7">
         <Link to="/create-code" className={btnClass("gold", "min-h-16 text-lg")}><span className="flex size-8 items-center justify-center rounded-full bg-deep text-gold"><Plus className="size-5" /></span> Create access code</Link>
+        <QuickDelivery className="-mt-4" />
 
         <SetupCard userId={me?.id} hasCodes={(counts?.total ?? codes.length) > 0} />
 

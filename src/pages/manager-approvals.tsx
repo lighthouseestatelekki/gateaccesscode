@@ -44,7 +44,7 @@ function Approvals() {
         </div>
         <div className="mt-5 grid grid-cols-2 divide-x divide-deep-foreground/15 rounded-sm bg-deep-dark/40 py-3">
           <div className="px-4"><p className="font-display text-2xl font-bold">{stats?.codes_today ?? "–"}</p><p className="text-xs text-deep-foreground/70">Codes issued today</p></div>
-          <div className="px-4"><p className="font-display text-2xl font-bold">{stats?.inside_now ?? "–"}</p><p className="text-xs text-deep-foreground/70">People inside now</p></div>
+          <Link to="/manager/inside" className="px-4"><p className="font-display text-2xl font-bold">{stats?.inside_now ?? "–"}</p><p className="text-xs text-deep-foreground/70">People inside now ›</p></Link>
         </div>
       </Hero>
       <Sheet>

@@ -207,7 +207,7 @@ export function ManagerTabs() {
   return (
     <nav className="sticky bottom-0 mt-auto grid grid-cols-5 border-t border-border bg-card/95 backdrop-blur safe-bottom pt-1">
       {tabs.map((t) => {
-        const on = path.startsWith(t.to) || (t.to === "/manager/more" && /^\/manager\/(insights|announce|fixit)/.test(path));
+        const on = path.startsWith(t.to) || (t.to === "/manager/more" && /^\/manager\/(insights|announce|fixit|inside)/.test(path));
         return (
           <Link key={t.to} to={t.to} className={cn("flex min-h-14 flex-col items-center justify-center text-[13px] font-semibold", on ? "text-deep" : "text-muted-foreground")}>
             <span className={cn("mb-1 h-1 w-8 rounded-full", on ? "bg-primary" : "bg-transparent")} />
