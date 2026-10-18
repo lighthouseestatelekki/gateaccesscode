@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, TriangleAlert } from "lucide-react";
+import { ShiftBar } from "@/components/lh/ShiftBar";
 import { Keypad, PinDigits } from "@/components/lh/guard";
 import { usePin } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
@@ -104,8 +105,10 @@ function Verify() {
           <LogOut className="size-5" />
         </Link>
       </div>
+      <ShiftBar />
       <AlertsCard userId={me?.id} tone="dark" className="mt-4" />
-      <p className="mt-10 text-center text-lg text-deep-foreground/70">Enter visitor code</p>
+      <Link to="/guard/incident" className="mt-3 flex min-h-11 items-center justify-center gap-2 self-center rounded-full bg-white/10 px-4 text-sm font-semibold"><TriangleAlert className="size-4 text-gold" /> Report an incident</Link>
+      <p className="mt-8 text-center text-lg text-deep-foreground/70">Enter visitor code</p>
       <div className="mt-5"><PinDigits value={pin.value} /></div>
       {error && <p role="alert" className="text-center text-base font-semibold text-red-300">{error}</p>}
       <div className="mt-auto pt-10">

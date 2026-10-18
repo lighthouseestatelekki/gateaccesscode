@@ -10,6 +10,10 @@ import { SignOutEverywhere } from "@/components/lh/SignOutEverywhere";
 export const title = "Guards";
 
 type Guard = { id: string; full_name: string; guard_number: string; assigned_gate: number; status: string };
+type Shift = { id: string; guard_id: string; started_at: string; ended_at: string | null; handover_note: string | null; auto_closed: boolean };
+
+const hours = (s: Shift, now = Date.now()) => ((s.ended_at ? new Date(s.ended_at).getTime() : now) - new Date(s.started_at).getTime()) / 3_600_000;
+const fmtTime = (iso: string) => new Date(iso).toLocaleString("en-GB", { timeZone: "Africa/Lagos", weekday: "short", hour: "numeric", minute: "2-digit", hour12: true });
 
 function Guards() {
   const me = useManager();
@@ -25,6 +29,7 @@ function Guards() {
   const [suggested, setSuggested] = useState("");
   const [picked, setPicked] = useState<Guard | null>(null);
   const [resetTemp, setResetTemp] = useState("");
+  const [shifts, setShifts] = useState<Shift[]>([]);
   async function resetGuardPin(g: Guard) {
     setBusy(true);
     setError("");
@@ -52,6 +57,9 @@ function Guards() {
     const rows = (data ?? []) as Guard[];
     rows.sort((a, b) => Number(a.guard_number) - Number(b.guard_number));
     setList(rows);
+    const since = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    const { data: sh } = await supabase.from("guard_shifts").select("id,guard_id,started_at,ended_at,handover_note,auto_closed").or(`started_at.gte.${since},ended_at.is.null`).order("started_at", { ascending: false });
+    setShifts((sh ?? []) as Shift[]);
   }, []);
 
   useEffect(() => {
@@ -108,7 +116,13 @@ function Guards() {
              <button onClick={() => { setPicked(g); setResetTemp(""); setError(""); }} className="flex min-h-16 w-full items-center gap-3 py-3 text-left">
               <span className="flex size-11 items-center justify-center rounded-full bg-deep font-display font-semibold text-deep-foreground">{g.guard_number}</span>
               <span className="flex-1"><span className="block font-semibold">Guard {g.guard_number}</span><span className="block text-sm text-text-2">{g.full_name} · Gate {g.assigned_gate}</span></span>
-              <span className="rounded-full bg-mint-light px-2.5 py-0.5 text-xs font-semibold capitalize text-deep">{g.status}</span>
+              {g.status !== "active" ? (
+                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold capitalize text-text-2">{g.status}</span>
+              ) : shifts.some((s) => s.guard_id === g.id && !s.ended_at) ? (
+                <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground">On duty</span>
+              ) : (
+                <span className="rounded-full bg-mint-light px-2.5 py-0.5 text-xs font-semibold text-deep">Off duty</span>
+              )}
              </button>
             </li>
           ))}
@@ -119,6 +133,25 @@ function Guards() {
       <BottomSheet open={!!picked} onClose={() => !busy && setPicked(null)} title={picked ? `Guard ${picked.guard_number} · ${picked.full_name}` : ""}>
         {picked && (
           <div className="space-y-3 pb-4">
+            {(() => {
+              const mine = shifts.filter((s) => s.guard_id === picked.id);
+              const total = mine.reduce((t, s) => t + hours(s), 0);
+              return (
+                <div className="rounded-2xl border border-border p-3">
+                  <p className="text-sm font-semibold">Last 7 days: {total.toFixed(1)} hours · {mine.length} shift{mine.length === 1 ? "" : "s"}</p>
+                  <ul className="mt-2 space-y-1.5 text-sm text-text-2">
+                    {mine.slice(0, 5).map((s) => (
+                      <li key={s.id}>
+                        {fmtTime(s.started_at)} → {s.ended_at ? fmtTime(s.ended_at) : <b className="text-primary">on duty now</b>}
+                        {s.auto_closed && <span className="text-gold-text"> (forgot to clock out)</span>}
+                        {s.handover_note && <span className="block text-xs italic text-muted-foreground">“{s.handover_note}”</span>}
+                      </li>
+                    ))}
+                    {mine.length === 0 && <li>No shifts yet.</li>}
+                  </ul>
+                </div>
+              );
+            })()}
             {resetTemp ? (
               <div className="space-y-2 text-center">
                 <p className="code-digits rounded-2xl bg-mint-lightest py-5 text-4xl font-bold text-deep">{resetTemp.slice(0, 3)} {resetTemp.slice(3)}</p>

@@ -24,9 +24,9 @@ const tones = {
   denied: "bg-destructive text-destructive-foreground",
 };
 
-export function Verdict({ tone, title, children }: { tone: keyof typeof tones; title: string; children: ReactNode }) {
+export function Verdict({ tone, title, children, seconds = 4, compact }: { tone: keyof typeof tones; title: string; children: ReactNode; seconds?: number; compact?: boolean }) {
   const nav = useNavigate();
-  const [n, setN] = useState(4);
+  const [n, setN] = useState(seconds);
   useEffect(() => {
     if (n <= 0) {
       nav("/guard/verify");
@@ -38,11 +38,11 @@ export function Verdict({ tone, title, children }: { tone: keyof typeof tones; t
   return (
     <div className={cn("flex min-h-dvh flex-col items-center px-6 text-center safe-top safe-bottom animate-in fade-in zoom-in-95 duration-200", tones[tone])}>
       <div className="flex flex-1 flex-col items-center justify-center">
-        <div className="relative mb-6 flex size-32 items-center justify-center rounded-full border-[6px] border-current/50 bg-black/10">
+        {!compact && <div className="relative mb-6 flex size-32 items-center justify-center rounded-full border-[6px] border-current/50 bg-black/10">
           <span aria-hidden className="absolute inset-0 rounded-full bg-current/20 motion-safe:animate-ping" />
           {tone === "access" ? <Check className="relative size-16" strokeWidth={3.5} /> : tone === "expired" ? <Clock className="relative size-16" strokeWidth={3} /> : <X className="relative size-16" strokeWidth={3.5} />}
-        </div>
-        <h1 className="text-[clamp(4rem,22vw,7rem)] font-extrabold leading-none tracking-tight">{title}</h1>
+        </div>}
+        <h1 className={cn("font-extrabold leading-none tracking-tight", compact ? "text-6xl" : "text-[clamp(4rem,22vw,7rem)]")}>{title}</h1>
         <div className="mt-6 space-y-2">{children}</div>
       </div>
       <div className="w-full max-w-md space-y-3">

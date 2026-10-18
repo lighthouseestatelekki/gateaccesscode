@@ -1,7 +1,7 @@
 import { ResidentTabs } from "@/components/lh/nav";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
-import { ArrowLeft, Bell, DoorOpen, LogIn, Megaphone, ShieldAlert, ShieldCheck, UsersRound, Wrench, XCircle } from "lucide-react";
+import { ArrowLeft, Bell, DoorOpen, IdCard, LogIn, Megaphone, ShieldAlert, ShieldCheck, TriangleAlert, UsersRound, Wrench, XCircle } from "lucide-react";
 import { Hero, Screen, Sheet } from "@/components/lh/ui";
 import { useInbox, type Notice } from "@/lib/useInbox";
 import { useMe } from "@/lib/useMe";
@@ -12,11 +12,11 @@ export const title = "Inbox";
 
 const icons: Record<string, typeof Bell> = {
   announcement: Megaphone, code_in: LogIn, code_out: DoorOpen, code_refused: XCircle,
-  code_switched_off: XCircle, approved: ShieldCheck, sos: ShieldAlert, security: ShieldAlert, fixit: Wrench, household: UsersRound,
+  code_switched_off: XCircle, approved: ShieldCheck, sos: ShieldAlert, security: ShieldAlert, fixit: Wrench, household: UsersRound, staff: IdCard, incident: TriangleAlert,
 };
 const tint: Record<string, string> = {
   announcement: "bg-gold-light text-gold-text", sos: "bg-destructive-light text-destructive",
-  code_refused: "bg-destructive-light text-destructive", security: "bg-gold-light text-gold-text", code_switched_off: "bg-muted text-text-2",
+  code_refused: "bg-destructive-light text-destructive", security: "bg-gold-light text-gold-text", incident: "bg-destructive-light text-destructive", staff: "bg-gold-light text-gold-text", code_switched_off: "bg-muted text-text-2",
 };
 
 function Row({ n }: { n: Notice }) {

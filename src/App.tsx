@@ -29,6 +29,9 @@ import * as Household from "@/pages/household";
 import * as ManagerFixit from "@/pages/manager-fixit";
 import * as ManagerMore from "@/pages/manager-more";
 import * as ManagerInside from "@/pages/manager-inside";
+import * as Join from "@/pages/join";
+import * as GuardIncident from "@/pages/guard-incident";
+import * as ManagerIncidents from "@/pages/manager-incidents";
 import * as Login from "@/pages/login";
 import * as ManagerApprovals from "@/pages/manager-approvals";
 import * as ManagerApprovalDetail from "@/pages/manager-approval-detail";
@@ -68,6 +71,9 @@ export default function App() {
         <Route path="/fixit" element={<Page title={Fixit.title}><Fixit.default /></Page>} />
         <Route path="/household" element={<Page title={Household.title}><Household.default /></Page>} />
         <Route path="/manager/fixit" element={<Page title={ManagerFixit.title}><ManagerFixit.default /></Page>} />
+        <Route path="/join/:token" element={<Page title={Join.title}><Join.default /></Page>} />
+        <Route path="/guard/incident" element={<Page title={GuardIncident.title}><GuardIncident.default /></Page>} />
+        <Route path="/manager/incidents" element={<Page title={ManagerIncidents.title}><ManagerIncidents.default /></Page>} />
         <Route path="/manager/inside" element={<Page title={ManagerInside.title}><ManagerInside.default /></Page>} />
         <Route path="/manager/more" element={<Page title={ManagerMore.title}><ManagerMore.default /></Page>} />
         <Route path="/change-pin" element={<Page title={ChangePin.title}><ChangePin.default /></Page>} />
