@@ -106,6 +106,7 @@ function Welcome() {
             </p>
             <div className="mt-2 flex justify-center">
               <Link to="/guard/login" className="inline-flex min-h-11 items-center px-3 text-xs font-semibold text-white/60">Staff sign-in</Link>
+              <Link to="/privacy" className="inline-flex min-h-11 items-center px-3 text-xs font-semibold text-white/60">Privacy</Link>
             </div>
           </div>
         </>

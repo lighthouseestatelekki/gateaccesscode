@@ -1,0 +1,77 @@
+# Nightly encrypted backup of the Supabase database (Free plan has no backups of its own).
+# Runs at 01:30 Lagos time. Each backup is kept for 30 days under Actions -> this workflow -> run -> Artifacts.
+# Needs two repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_DB_URL     the "Session pooler" connection string from Supabase (includes the database password)
+#   BACKUP_PASSPHRASE   a long passphrase used to encrypt the backup. Keep a copy somewhere safe offline.
+# See docs/backups.md for set-up and how to restore.
+name: Nightly database backup
+
+on:
+  schedule:
+    - cron: "30 0 * * *" # 00:30 UTC = 01:30 Lagos
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check the secrets are set
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$DB_URL" ] || [ -z "$PASSPHRASE" ]; then
+            echo "::error::Add the SUPABASE_DB_URL and BACKUP_PASSPHRASE repository secrets (see docs/backups.md)."
+            exit 1
+          fi
+          if [ "${#PASSPHRASE}" -lt 20 ]; then
+            echo "::error::BACKUP_PASSPHRASE is too short. Use at least 20 characters."
+            exit 1
+          fi
+
+      - name: Install the PostgreSQL 17 tools
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Back up and encrypt
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          umask 077
+          STAMP=$(TZ=Africa/Lagos date +%Y-%m-%d)
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          mkdir -p out work
+          PGD=/usr/lib/postgresql/17/bin/pg_dump
+          # 1) The app's own tables (structure + data).
+          "$PGD" "$DB_URL" --format=custom --no-owner --no-privileges --schema=public --file=work/app.dump
+          # 2) Sign-in accounts (data only), so everyone can still sign in after a restore.
+          "$PGD" "$DB_URL" --format=custom --no-owner --no-privileges --data-only --schema=auth --file=work/auth.dump
+          test -s work/app.dump && test -s work/auth.dump
+          tar -C work -czf "work/light-house-estate-$STAMP.tar.gz" app.dump auth.dump
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$PASSPHRASE" \
+              --symmetric --cipher-algo AES256 \
+              --output "out/light-house-estate-$STAMP.tar.gz.gpg" "work/light-house-estate-$STAMP.tar.gz"
+          rm -rf work
+          ls -lh out
+
+      - name: Keep the encrypted backup for 30 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: light-house-estate-backup-${{ env.STAMP }}
+          path: out/*.gpg
+          retention-days: 30
+          if-no-files-found: error

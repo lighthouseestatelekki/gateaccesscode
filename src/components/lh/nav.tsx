@@ -15,7 +15,7 @@ export function ResidentTabs() {
     { to: "/codes", label: "Codes", icon: KeyRound, match: ["/codes"] },
     { to: "/staff", label: "Staff", icon: Users, match: ["/staff"] },
     { to: "/inbox", label: "Inbox", icon: Inbox, match: ["/inbox"] },
-    { to: "/more", label: "More", icon: Menu, match: ["/more", "/insights", "/hadith", "/fixit", "/household"] },
+    { to: "/more", label: "More", icon: Menu, match: ["/more", "/insights", "/hadith", "/fixit", "/household", "/moving"] },
   ] as const;
   return (
     <nav aria-label="Main menu" className="sticky bottom-0 z-30 mt-auto grid grid-cols-5 border-t border-border bg-card/95 pt-1 backdrop-blur safe-bottom">

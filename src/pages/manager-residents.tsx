@@ -99,6 +99,7 @@ function Residents() {
             <Link to={`/manager/house/${sel.id}`} className={btnClass("primary")}>Codes for this house</Link>
             <Button variant="secondary" disabled={busy} onClick={resetPin}>{busy ? "Resetting…" : "Reset PIN"}</Button>
             <SignOutEverywhere key={sel.id} userId={sel.id} name={sel.full_name} />
+            {sel.household_role !== "member" && <Link to="/manager/moving" state={{ resident: sel }} className="flex min-h-12 items-center justify-center text-sm font-semibold text-text-2 underline">Move this household out…</Link>}
           </div>
         )}
       </BottomSheet>

@@ -30,6 +30,11 @@ import * as ManagerFixit from "@/pages/manager-fixit";
 import * as ManagerMore from "@/pages/manager-more";
 import * as ManagerInside from "@/pages/manager-inside";
 import * as Join from "@/pages/join";
+import * as Privacy from "@/pages/privacy";
+import * as Moving from "@/pages/moving";
+import * as ManagerMoving from "@/pages/manager-moving";
+import * as ManagerHistory from "@/pages/manager-history";
+import { PrivacyGate } from "@/components/lh/PrivacyGate";
 import * as GuardIncident from "@/pages/guard-incident";
 import * as ManagerIncidents from "@/pages/manager-incidents";
 import * as Login from "@/pages/login";
@@ -65,12 +70,17 @@ export default function App() {
     <SosWatcher />
     <UpdateBanner />
     <AppLock />
+    <PrivacyGate />
     <Routes>
       <Route path="/" element={<Page title={Welcome.title}><Welcome.default /></Page>} />
         <Route path="/more" element={<Page title={More.title}><More.default /></Page>} />
         <Route path="/fixit" element={<Page title={Fixit.title}><Fixit.default /></Page>} />
         <Route path="/household" element={<Page title={Household.title}><Household.default /></Page>} />
         <Route path="/manager/fixit" element={<Page title={ManagerFixit.title}><ManagerFixit.default /></Page>} />
+        <Route path="/privacy" element={<Page title={Privacy.title}><Privacy.default /></Page>} />
+        <Route path="/moving" element={<Page title={Moving.title}><Moving.default /></Page>} />
+        <Route path="/manager/moving" element={<Page title={ManagerMoving.title}><ManagerMoving.default /></Page>} />
+        <Route path="/manager/history" element={<Page title={ManagerHistory.title}><ManagerHistory.default /></Page>} />
         <Route path="/join/:token" element={<Page title={Join.title}><Join.default /></Page>} />
         <Route path="/guard/incident" element={<Page title={GuardIncident.title}><GuardIncident.default /></Page>} />
         <Route path="/manager/incidents" element={<Page title={ManagerIncidents.title}><ManagerIncidents.default /></Page>} />

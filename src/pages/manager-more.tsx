@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { BarChart3, ChevronRight, DoorOpen, LogOut, Megaphone, TriangleAlert, Wrench } from "lucide-react";
+import { BarChart3, ChevronRight, DoorOpen, History, LogOut, Megaphone, TriangleAlert, Truck, Wrench } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
@@ -16,10 +16,12 @@ function ManagerMore() {
   const me = useManager();
   const [openFixit, setOpenFixit] = useState<number | null>(null);
   const [openIncidents, setOpenIncidents] = useState<number | null>(null);
+  const [moves, setMoves] = useState<number | null>(null);
   useEffect(() => {
     if (!me) return;
     supabase.from("fixit_requests").select("id", { count: "exact", head: true }).neq("status", "done").then(({ count }) => setOpenFixit(count ?? 0));
     supabase.from("incidents").select("id", { count: "exact", head: true }).eq("status", "open").then(({ count }) => setOpenIncidents(count ?? 0));
+    supabase.from("move_outs").select("id", { count: "exact", head: true }).eq("status", "requested").then(({ count }) => setMoves(count ?? 0));
   }, [me]);
   if (!me) return null;
   return (
@@ -34,6 +36,8 @@ function ManagerMore() {
           <li><Link to="/manager/inside" className={row}><span className={`${ico} bg-mint-light text-deep`}><DoorOpen className="size-5" /></span><span className="flex-1">Inside now</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/manager/fixit" className={row}><span className={`${ico} bg-mint-light text-deep`}><Wrench className="size-5" /></span><span className="flex-1">Fix-It requests</span>{!!openFixit && <span className="rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-deep-dark">{openFixit} open</span>}<ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/manager/announce" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><Megaphone className="size-5" /></span><span className="flex-1">Announcements</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
+          <li><Link to="/manager/moving" className={row}><span className={`${ico} bg-mint-light text-deep`}><Truck className="size-5" /></span><span className="flex-1">Moving out</span>{!!moves && <span className="rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-deep-dark">{moves} to confirm</span>}<ChevronRight className="size-5 text-muted-foreground" /></Link></li>
+          <li><Link to="/manager/history" className={row}><span className={`${ico} bg-mint-light text-deep`}><History className="size-5" /></span><span className="flex-1">Action history</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/manager/insights" className={row}><span className={`${ico} bg-mint-light text-deep`}><BarChart3 className="size-5" /></span><span className="flex-1">Insights</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
         </ul>
         <ThemePicker />

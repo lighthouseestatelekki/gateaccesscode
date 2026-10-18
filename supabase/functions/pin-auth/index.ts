@@ -105,6 +105,13 @@ async function alertOwners(admin: Admin, login: string, kind: "guard" | "residen
   if (rows.length) await admin.from("notifications").insert(rows);
 }
 
+/** Writes an entry in the Estate Manager action history. */
+// deno-lint-ignore no-explicit-any
+async function history(admin: any, actorId: string, action: string, target: string) {
+  const { data: a } = await admin.from("profiles").select("full_name,role").eq("id", actorId).maybeSingle();
+  await admin.from("audit_log").insert({ actor_id: actorId, actor_name: a?.full_name ?? null, actor_role: a?.role ?? null, action, target });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return reply({ error: "Use POST" }, 405);
@@ -140,7 +147,18 @@ Deno.serve(async (req) => {
       if (isWeakPin(pin)) return reply({ error: "That PIN is too easy to guess. Please choose another." }, 400);
 
       const login = residentLogin(house, unit);
-      const { data: made, error: makeErr } = await admin.auth.admin.createUser({ email: login, password: await pepper(pin, login), email_confirm: true });
+      let { data: made, error: makeErr } = await admin.auth.admin.createUser({ email: login, password: await pepper(pin, login), email_confirm: true });
+      if (makeErr && /already/i.test(makeErr.message ?? "")) {
+        // The last household here moved out: retire their old sign-in so the new household can register.
+        const { data: old } = await admin.from("profiles").select("id")
+          .eq("role", "resident").eq("household_role", "primary").eq("house_number", house).eq("house_unit", unit).eq("status", "moved_out");
+        const active = await admin.from("profiles").select("id", { count: "exact", head: true })
+          .eq("role", "resident").eq("household_role", "primary").eq("house_number", house).eq("house_unit", unit).neq("status", "moved_out");
+        if (old?.length && !active.count) {
+          for (const o of old) await admin.auth.admin.updateUserById(o.id, { email: `moved-${o.id}@residents.lighthouseestate.app` });
+          ({ data: made, error: makeErr } = await admin.auth.admin.createUser({ email: login, password: await pepper(pin, login), email_confirm: true }));
+        }
+      }
       if (makeErr || !made?.user) {
         if (/already/i.test(makeErr?.message ?? "")) {
           return reply({ error: "This house and unit is already registered. If this is you, log in. If not, please contact the Estate Manager." }, 409);
@@ -208,7 +226,7 @@ Deno.serve(async (req) => {
         const unit = String(body.house_unit ?? "");
         const { data: members } = await admin.from("profiles").select("member_no")
           .eq("role", "resident").eq("household_role", "member").eq("house_number", house).eq("house_unit", unit)
-          .neq("status", "declined").order("member_no").limit(8);
+          .not("status", "in", "(declined,moved_out)").order("member_no").limit(8);
         for (const m of members ?? []) {
           const ml = memberLogin(house, unit, m.member_no);
           session = (await fresh().auth.signInWithPassword({ email: ml, password: await pepper(pin, ml) })).data.session;
@@ -251,6 +269,11 @@ Deno.serve(async (req) => {
 
       // Success clears this phone's count only, so someone guessing elsewhere can't reset the hourly total.
       await admin.from("login_device_attempts").delete().eq("login", login).eq("device", device);
+      const { data: st } = await admin.from("profiles").select("status").eq("id", session.user.id).maybeSingle();
+      if (st?.status === "moved_out") {
+        await admin.auth.admin.signOut(session.access_token).catch(() => {});
+        return reply({ error: "This account was closed when the household moved out. If you still live here, please contact the Estate Manager." }, 403);
+      }
       return reply({ ok: true, access_token: session.access_token, refresh_token: session.refresh_token });
     }
 
@@ -269,7 +292,7 @@ Deno.serve(async (req) => {
     /** Is this PIN already used by someone else in the same house? (Each person needs their own.) */
     async function pinTakenInHouse(pin: string, house: string, unit: string, exceptId: string) {
       const { data: people } = await admin.from("profiles").select("id,household_role,member_no")
-        .eq("role", "resident").eq("house_number", house).eq("house_unit", unit).neq("id", exceptId).neq("status", "declined");
+        .eq("role", "resident").eq("house_number", house).eq("house_unit", unit).neq("id", exceptId).not("status", "in", "(declined,moved_out)");
       for (const p of people ?? []) {
         const l = p.household_role === "member" ? memberLogin(house, unit, p.member_no) : residentLogin(house, unit);
         const { data } = await fresh().auth.signInWithPassword({ email: l, password: await pepper(pin, l) });
@@ -342,7 +365,7 @@ Deno.serve(async (req) => {
       const id = String(body.profile_id ?? "");
       const { data: t } = await admin.from("profiles").select("id,member_of,full_name").eq("id", id).maybeSingle();
       if (!t || t.member_of !== me.id) return reply({ error: "Person not found in your household." }, 404);
-      await admin.from("profiles").update({ status: "suspended" }).eq("id", id);
+      await admin.from("profiles").update({ status: "moved_out", moved_out_at: new Date().toISOString() }).eq("id", id);
       await admin.rpc("revoke_user_sessions", { p_user: id });
       return reply({ ok: true });
     }
@@ -373,6 +396,7 @@ Deno.serve(async (req) => {
         await admin.auth.admin.deleteUser(made.user.id);
         return reply({ error: profErr.message }, 400);
       }
+      await history(admin, who.user.id, "Added a guard", `Guard ${num} (${full_name})`);
       return reply({ ok: true, guard_number: num });
     }
 
@@ -389,6 +413,8 @@ Deno.serve(async (req) => {
       const { data: flagged, error: flagErr } = await admin.from("profiles").update({ must_change_pin: true }).eq("id", id).select("id");
       if (flagErr || !flagged || flagged.length !== 1) return reply({ error: flagErr?.message ?? "Could not mark the PIN for change." }, 400);
       await clearLocks(admin, baseLogin(login));
+      const { data: tp } = await admin.from("profiles").select("full_name,role,guard_number,house_number").eq("id", id).maybeSingle();
+      await history(admin, who.user.id, "Reset a PIN", tp ? (tp.role === "guard" ? `Guard ${tp.guard_number} (${tp.full_name})` : `${tp.full_name}, House ${tp.house_number}`) : id);
       return reply({ ok: true, temp_pin: temp });
     }
 

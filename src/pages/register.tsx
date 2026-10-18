@@ -236,6 +236,7 @@ function Register() {
             </Button>
           )}
         </div>
+        {step === 3 && <p className="text-center text-xs text-muted-foreground">By submitting, you agree to our <Link to="/privacy" className="font-semibold text-deep underline">privacy notice</Link>.</p>}
         <p hidden={step === 3} className="text-center text-xs text-muted-foreground">Your details are saved on this phone until you finish. The Estate Manager checks them before approving.</p>
       </Sheet>
     </Screen>

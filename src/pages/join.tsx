@@ -185,7 +185,7 @@ function Join() {
 
         <label className="flex items-start gap-3 rounded-2xl bg-mint-lightest p-4">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 size-5 accent-[var(--primary)]" />
-          <span className="text-sm text-deep">I agree that Light House Estate can keep these details to check me at the gate and for estate security. They are shared only with the house I work for and the Estate Manager, and are deleted when I stop working here.</span>
+          <span className="text-sm text-deep">I agree that Light House Estate can keep these details to check me at the gate and for estate security. They are shared only with the house I work for and the Estate Manager, and are deleted when I stop working here. <a href="/privacy" target="_blank" rel="noopener" className="font-semibold underline">Privacy notice</a></span>
         </label>
 
         {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}

@@ -7,7 +7,7 @@ import { codeToUnit } from "@/lib/units";
 import { useMe } from "@/lib/useMe";
 import { supabase } from "@/lib/supabase";
 
-const RESIDENT_SCREENS = /^\/(home|codes|staff|inbox|more|insights|hadith|fixit|household|create-code|code-created|sos)(\/|$)/;
+const RESIDENT_SCREENS = /^\/(home|codes|staff|inbox|more|insights|hadith|fixit|household|moving|create-code|code-created|sos)(\/|$)/;
 
 /** Covers resident screens with a PIN pad after the app has been left unused for a few hours. */
 export function AppLock() {
