@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
     const { data: notes } = await admin.from("notifications").select("id,recipient_id,kind,title,body,link,details").in("id", ids);
     const list = (notes ?? []) as Notice[];
     const people = [...new Set(list.map((n) => n.recipient_id))];
-    const appUrl = (Deno.env.get("APP_URL") ?? "https://gateaccesscode.pages.dev").replace(/\/$/, "");
+    const appUrl = (Deno.env.get("APP_URL") ?? "https://lighthouse-gatecode.pages.dev").replace(/\/$/, "");
 
     // ---------- push ----------
     let pushed = 0;
