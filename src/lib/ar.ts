@@ -400,6 +400,8 @@ export const AR: Record<string, string> = {
   // ---- Fix-It ----
   "Fix-It": "الإصلاحات",
   "Fix-It requests": "طلبات الإصلاح",
+  "Madrasa": "المدرسة",
+  "Separate app with its own sign-in": "تطبيق منفصل بتسجيل دخول خاص به",
   "Report a problem in the estate. Follow it until it's fixed.": "أبلغ عن مشكلة في العقار، وتابعها حتى تُصلَح.",
   "Report a problem": "الإبلاغ عن مشكلة",
   "What is it about?": "عمّ تتعلق؟",

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { BarChart3, BookOpen, ChevronRight, Download, KeyRound, LogOut, ShieldAlert, ShieldCheck, Smartphone, Truck, UsersRound, Wrench } from "lucide-react";
+import { BarChart3, BookOpen, ChevronRight, Download, ExternalLink, GraduationCap, KeyRound, LogOut, ShieldAlert, ShieldCheck, Smartphone, Truck, UsersRound, Wrench } from "lucide-react";
 import { BottomSheet, Hero, Screen, Sheet } from "@/components/lh/ui";
 import { ResidentTabs } from "@/components/lh/nav";
 import { isInstalled, promptInstall } from "@/lib/install";
@@ -76,6 +76,7 @@ function More() {
           <li><Link to="/household" className={row}><span className={`${ico} bg-mint-light text-deep`}><UsersRound className="size-5" /></span><span className="flex-1">My household</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/fixit" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><Wrench className="size-5" /></span><span className="flex-1">Fix-It requests</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/insights" className={row}><span className={`${ico} bg-mint-light text-deep`}><BarChart3 className="size-5" /></span><span className="flex-1">Insights</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
+          <li><a href="https://lighthouse-madrasa.pages.dev" target="_blank" rel="noopener noreferrer" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><GraduationCap className="size-5" /></span><span className="flex-1"><span className="block">Madrasa</span><span className="block text-xs font-normal text-muted-foreground">Separate app with its own sign-in</span></span><ExternalLink className="size-5 text-muted-foreground" /></a></li>
           <li><Link to="/hadith" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><BookOpen className="size-5" /></span><span className="flex-1">Hadith</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/change-pin" className={row}><span className={`${ico} bg-mint-light text-deep`}><KeyRound className="size-5" /></span><span className="flex-1">Change my PIN</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           {!isInstalled() && (
