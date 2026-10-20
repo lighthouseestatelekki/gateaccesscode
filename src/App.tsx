@@ -41,6 +41,7 @@ import * as Login from "@/pages/login";
 import * as ManagerApprovals from "@/pages/manager-approvals";
 import * as ManagerApprovalDetail from "@/pages/manager-approval-detail";
 import * as ManagerGuards from "@/pages/manager-guards";
+import * as ManagerManagers from "@/pages/manager-managers";
 import * as ManagerGateLog from "@/pages/manager-gate-log";
 import * as ManagerLogin from "@/pages/manager-login";
 import * as ManagerResidents from "@/pages/manager-residents";
@@ -109,6 +110,7 @@ export default function App() {
         <Route path="/manager/approvals/:id" element={<Page title={ManagerApprovalDetail.title}><ManagerApprovalDetail.default /></Page>} />
         <Route path="/manager/gate-log" element={<Page title={ManagerGateLog.title}><ManagerGateLog.default /></Page>} />
         <Route path="/manager/guards" element={<Page title={ManagerGuards.title}><ManagerGuards.default /></Page>} />
+        <Route path="/manager/managers" element={<Page title={ManagerManagers.title}><ManagerManagers.default /></Page>} />
         <Route path="/manager/login" element={<Page title={ManagerLogin.title}><ManagerLogin.default /></Page>} />
         <Route path="/manager/residents" element={<Page title={ManagerResidents.title}><ManagerResidents.default /></Page>} />
         <Route path="/pending" element={<Page title={Pending.title}><Pending.default /></Page>} />

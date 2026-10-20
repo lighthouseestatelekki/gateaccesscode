@@ -3,15 +3,26 @@ import { supabase } from "@/lib/supabase";
 // Two-step sign-in for the Estate Manager: password, then a 6-digit code from an authenticator app
 // (Google Authenticator, Microsoft Authenticator, Authy...). Uses Supabase's built-in TOTP support.
 
-export type MfaState = "verified" | "needs_code" | "needs_setup";
+// A fingerprint (passkey) also counts as the second step.
+export type MfaState = "verified" | "needs_code" | "needs_fingerprint" | "needs_setup";
 
-export async function mfaState(): Promise<MfaState> {
+export async function mfaState(userId?: string): Promise<MfaState> {
   const mfa = supabase.auth.mfa;
   if (!mfa) return "verified"; // (only in tests)
   const { data } = await mfa.getAuthenticatorAssuranceLevel();
   if (data?.currentLevel === "aal2") return "verified";
+  const { data: strong } = await supabase.rpc("is_strong_session");
+  if (strong === true) return "verified";
   if (data?.nextLevel === "aal2") return "needs_code";
+  const uid = userId ?? (await supabase.auth.getSession()).data?.session?.user?.id;
+  if (uid && (await hasFingerprint(uid))) return "needs_fingerprint";
   return "needs_setup";
+}
+
+/** True if this account has fingerprint sign-in on at least one phone. */
+export async function hasFingerprint(userId: string): Promise<boolean> {
+  const { count } = await supabase.from("passkeys").select("id", { count: "exact", head: true }).eq("user_id", userId);
+  return (count ?? 0) > 0;
 }
 
 async function verifiedFactorId(): Promise<string | null> {

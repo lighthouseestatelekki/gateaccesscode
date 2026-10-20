@@ -5,7 +5,7 @@ import { getCached, setCached } from "@/lib/profileCache";
 import { signedOutElsewhere } from "@/lib/sessionCheck";
 import { mfaState } from "@/lib/mfa";
 
-export type ManagerProfile = { id: string; role: string; status: string; full_name: string };
+export type ManagerProfile = { id: string; role: string; status: string; full_name: string; must_change_pin?: boolean | null };
 
 /** Loads the signed-in Estate Manager. Anyone else is signed out and sent to /manager/login. */
 export function useManager(): ManagerProfile | null {
@@ -20,10 +20,15 @@ export function useManager(): ManagerProfile | null {
         if (alive) nav("/manager/login", { replace: true });
         return;
       }
-      const { data, error } = await supabase.from("profiles").select("id,role,status,full_name").eq("id", user.id).single();
+      const { data, error } = await supabase.from("profiles").select("id,role,status,full_name,must_change_pin").eq("id", user.id).single();
       if (!alive) return;
       if (error || !data || data.role !== "estate_manager" || data.status !== "active") {
         await supabase.auth.signOut();
+        nav("/manager/login", { replace: true });
+        return;
+      }
+      // New or reset Estate Manager: choose their own password first.
+      if (data.must_change_pin) {
         nav("/manager/login", { replace: true });
         return;
       }

@@ -371,7 +371,47 @@ Deno.serve(async (req) => {
     }
 
     if (me.role !== "estate_manager") return reply({ error: "Only the Estate Manager can do this." }, 403);
-    if (jwt.aal !== "aal2") return reply({ error: "Please confirm your sign-in with your authenticator code first." }, 403);
+    // Two-step: authenticator code (aal2), or a fingerprint sign-in (recorded as a strong session).
+    const sid = String(jwt.session_id ?? "");
+    const strong = jwt.aal === "aal2" || (!!sid && !!(await admin.from("strong_sessions").select("session_id").eq("session_id", sid).eq("user_id", who.user.id).maybeSingle()).data);
+    if (!strong) return reply({ error: "Please confirm your sign-in with your authenticator code or fingerprint first." }, 403);
+
+    // ---------- more than one Estate Manager ----------
+    if (body.action === "create_manager" || body.action === "reset_manager") {
+      const temp = Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("");
+      const tempPassword = `${temp.slice(0, 3)}-${temp.slice(3, 6)}-${temp.slice(6)}`;
+      if (body.action === "create_manager") {
+        const full_name = String(body.full_name ?? "").trim().slice(0, 80);
+        const email = String(body.email ?? "").trim().toLowerCase();
+        if (full_name.length < 2) return reply({ error: "Please enter their full name." }, 400);
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return reply({ error: "Please enter a valid email address." }, 400);
+        const { data: made, error: makeErr } = await admin.auth.admin.createUser({ email, password: tempPassword, email_confirm: true });
+        if (makeErr || !made?.user) return reply({ error: /already/i.test(makeErr?.message ?? "") ? "This email already has an account." : makeErr?.message ?? "Could not add the Estate Manager." }, 409);
+        const { error: profErr } = await admin.from("profiles").insert({
+          id: made.user.id, role: "estate_manager", status: "active", full_name, email, must_change_pin: true, created_by: who.user.id,
+        });
+        if (profErr) {
+          await admin.auth.admin.deleteUser(made.user.id);
+          return reply({ error: profErr.message }, 400);
+        }
+        await history(admin, who.user.id, "Added an Estate Manager", `${full_name} (${email})`);
+        return reply({ ok: true, temp_password: tempPassword });
+      }
+      // reset_manager: lost phone or forgotten password. New temporary password; authenticator and fingerprints removed.
+      const id = String(body.profile_id ?? "");
+      if (id === who.user.id) return reply({ error: "Ask another Estate Manager to reset your sign-in." }, 400);
+      const { data: t } = await admin.from("profiles").select("id,role,full_name").eq("id", id).maybeSingle();
+      if (!t || t.role !== "estate_manager") return reply({ error: "Estate Manager not found." }, 404);
+      const { error: pwErr } = await admin.auth.admin.updateUserById(id, { password: tempPassword });
+      if (pwErr) return reply({ error: pwErr.message }, 400);
+      const { data: f } = await admin.auth.admin.mfa.listFactors({ userId: id });
+      for (const x of f?.factors ?? []) await admin.auth.admin.mfa.deleteFactor({ userId: id, id: x.id });
+      await admin.from("passkeys").delete().eq("user_id", id);
+      await admin.from("profiles").update({ must_change_pin: true }).eq("id", id);
+      await admin.rpc("revoke_user_sessions", { p_user: id });
+      await history(admin, who.user.id, "Reset an Estate Manager's sign-in", t.full_name);
+      return reply({ ok: true, temp_password: tempPassword });
+    }
 
     if (body.action === "create_guard") {
       const full_name = String(body.full_name ?? "").trim();

@@ -3,6 +3,21 @@
 // Anything not listed here simply stays in English.
 
 export const AR: Record<string, string> = {
+  // ---- fingerprint sign-in ----
+  "Sign in with fingerprint": "تسجيل الدخول بالبصمة",
+  "or enter your PIN": "أو أدخل رمزك السري",
+  "Sign in with your fingerprint": "سجّل الدخول ببصمتك",
+  "Faster than typing. Your PIN still works as a backup. Your fingerprint never leaves your phone.": "أسرع من الكتابة. يبقى رمزك السري متاحًا كبديل. بصمتك لا تغادر هاتفك أبدًا.",
+  "Setting up…": "جارٍ الإعداد…",
+  "Done. Next time, sign in with your fingerprint.": "تم. في المرة القادمة، سجّل الدخول ببصمتك.",
+  "Fingerprint sign-in": "الدخول بالبصمة",
+  "These phones can sign in with a fingerprint or face.": "يمكن لهذه الهواتف تسجيل الدخول بالبصمة أو الوجه.",
+  "Sign in with your fingerprint instead of typing.": "سجّل الدخول ببصمتك بدلًا من الكتابة.",
+  "Add this phone": "إضافة هذا الهاتف",
+  "Turn on for this phone": "تفعيل على هذا الهاتف",
+  "Unlock with fingerprint": "فتح القفل بالبصمة",
+  "The fingerprint check was cancelled. Try again, or use your PIN.": "أُلغي التحقق بالبصمة. حاول مرة أخرى أو استخدم رمزك السري.",
+  "This phone can't use fingerprint sign-in. Please use your PIN.": "لا يدعم هذا الهاتف الدخول بالبصمة. يُرجى استخدام رمزك السري.",
   // ---- welcome & sign-in ----
   "Assalam Alaekum": "السلام عليكم",
   "Assalam Alaekum Waramotullahi Wabarakatu": "السلام عليكم ورحمة الله وبركاته",

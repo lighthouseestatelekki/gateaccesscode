@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { pinSignIn } from "@/lib/staffAdmin";
 import { setStaffChoice } from "@/lib/entry";
 import { codeToUnit, UNIT_LABELS, unitToCode } from "@/lib/units";
+import { Fingerprint } from "lucide-react";
+import { passkeyOnThisPhone, passkeySupported, signInWithPasskey } from "@/lib/passkey";
 
 export const title = "Resident log in";
 
@@ -43,6 +45,70 @@ function StaffLink() {
   return (
     <div className="flex justify-center">
       <Link to="/guard/login" className="inline-flex min-h-11 items-center px-3 text-xs font-semibold text-muted-foreground">Staff sign-in</Link>
+    </div>
+  );
+}
+
+/**
+ * Fingerprint / Face ID sign-in. Big button when fingerprint sign-in is already on for this phone,
+ * a small link when the phone could use it. The PIN always stays as the backup.
+ */
+function FingerprintSignIn() {
+  const nav = useNavigate();
+  const [can, setCan] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const on = passkeyOnThisPhone();
+  useEffect(() => {
+    let alive = true;
+    passkeySupported().then((ok) => alive && setCan(ok));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  if (!can) return null;
+
+  async function go() {
+    setBusy(true);
+    setError("");
+    try {
+      const role = await signInWithPasskey();
+      if (role === "estate_manager") {
+        setStaffChoice("manager");
+        nav("/manager/approvals", { replace: true });
+        return;
+      }
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s?.session?.user?.id;
+      const { data: p } = uid
+        ? await supabase.from("profiles").select("role,status,must_change_pin,house_number,house_unit").eq("id", uid).single()
+        : { data: null };
+      if (!p || p.role !== "resident" || p.status !== "active") {
+        await supabase.auth.signOut();
+        throw new Error("We couldn't find your registration. Please contact the Estate Manager.");
+      }
+      if (p.house_number) saveHouse({ number: String(p.house_number), unit: codeToUnit(p.house_unit ?? "") });
+      setStaffChoice(null);
+      nav(p.must_change_pin ? "/change-pin" : "/home", { replace: true });
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {on ? (
+        <Button disabled={busy} onClick={go}>
+          <Fingerprint className="size-5" /> {busy ? "Checking…" : "Sign in with fingerprint"}
+        </Button>
+      ) : (
+        <button type="button" disabled={busy} onClick={go} className="inline-flex min-h-11 items-center justify-center gap-2 text-sm font-semibold text-primary">
+          <Fingerprint className="size-4" /> {busy ? "Checking…" : "Sign in with fingerprint"}
+        </button>
+      )}
+      {error && <p role="alert" className="text-center text-sm font-medium text-destructive">{error}</p>}
+      {on && <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">or enter your PIN</p>}
     </div>
   );
 }
@@ -111,6 +177,7 @@ function PickHouse({ onDone }: { onDone: (h: House) => void }) {
         </p>
       </Hero>
       <Sheet className="flex flex-col gap-5">
+        {passkeyOnThisPhone() && <FingerprintSignIn />}
         <Keypad onDigit={(d) => num.value.length < 3 && num.onDigit(d)} onBack={num.onBack} />
         <Button disabled={!ok} onClick={() => setStep("unit")}>Next</Button>
         <StaffLink />
@@ -226,6 +293,7 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
         <span className="mt-3 inline-flex rounded-full bg-gold px-3.5 py-1.5 text-sm font-bold text-deep-dark">{house.unit}</span>
       </Hero>
       <Sheet className="flex flex-col gap-5">
+        {passkeyOnThisPhone() && <FingerprintSignIn />}
         <h2 className="text-center text-lg font-bold">{checking ? "Checking…" : "Enter your PIN"}</h2>
         <PinBoxes value={pin.value} />
         {error && <p role="alert" className="text-center text-sm font-medium text-destructive">{error}</p>}
@@ -242,6 +310,7 @@ function EnterPin({ house, onChangeHouse }: { house: House; onChangeHouse: () =>
           }}
         />
         <p className="text-center text-sm text-text-2">Signs you in on the 6th digit · Forgot your PIN? Ask the Estate Manager.</p>
+        {!passkeyOnThisPhone() && <FingerprintSignIn />}
         <HadithLine className="pt-1" />
         <StaffLink />
       </Sheet>

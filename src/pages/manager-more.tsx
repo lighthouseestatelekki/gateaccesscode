@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { BarChart3, ChevronRight, DoorOpen, History, LogOut, Megaphone, TriangleAlert, Truck, Wrench } from "lucide-react";
+import { BarChart3, ChevronRight, DoorOpen, History, LogOut, Megaphone, TriangleAlert, Truck, UserCog, Wrench } from "lucide-react";
+import { FingerprintSettings } from "@/components/lh/Fingerprint";
 import { useEffect, useState } from "react";
 import { Hero, ManagerTabs, Screen, Sheet } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
@@ -40,7 +41,9 @@ function ManagerMore() {
           <li><Link to="/manager/moving" className={row}><span className={`${ico} bg-mint-light text-deep`}><Truck className="size-5" /></span><span className="flex-1">Moving out</span>{!!moves && <span className="rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-deep-dark">{moves} to confirm</span>}<ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/manager/history" className={row}><span className={`${ico} bg-mint-light text-deep`}><History className="size-5" /></span><span className="flex-1">Action history</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
           <li><Link to="/manager/insights" className={row}><span className={`${ico} bg-mint-light text-deep`}><BarChart3 className="size-5" /></span><span className="flex-1">Insights</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
+          <li><Link to="/manager/managers" className={row}><span className={`${ico} bg-gold-light text-gold-text`}><UserCog className="size-5" /></span><span className="flex-1">Estate Managers</span><ChevronRight className="size-5 text-muted-foreground" /></Link></li>
         </ul>
+        <FingerprintSettings userId={me.id} />
         <WeeklyEmailToggle />
         <ThemePicker />
         <button

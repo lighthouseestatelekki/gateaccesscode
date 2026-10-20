@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Plus, ShieldAlert } from "lucide-react";
 import { Initial } from "@/components/lh/CodeTicket";
 import { SetupCard } from "@/components/lh/SetupCard";
+import { FingerprintOffer } from "@/components/lh/Fingerprint";
 import { TodayCarousel } from "@/components/lh/TodayCarousel";
 import { InsightsSnapshot } from "@/components/lh/InsightsSnapshot";
 import { ExploreGrid } from "@/components/lh/ExploreGrid";
@@ -113,6 +114,7 @@ function Home() {
 
         <SetupCard userId={me?.id} hasCodes={(counts?.total ?? codes.length) > 0} />
 
+        <FingerprintOffer />
         <TodayCarousel />
 
         {recentVisitors.length > 0 && (

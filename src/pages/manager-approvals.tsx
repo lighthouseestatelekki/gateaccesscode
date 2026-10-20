@@ -6,6 +6,7 @@ import { AlertsCard } from "@/components/lh/AlertsCard";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { useManager } from "@/lib/useManager";
+import { FingerprintOffer } from "@/components/lh/Fingerprint";
 import { formatWhen } from "@/lib/when";
 
 export const title = "Approvals";
@@ -49,6 +50,7 @@ function Approvals() {
       </Hero>
       <Sheet>
         <AlertsCard userId={me.id} className="mb-5" />
+        <FingerprintOffer className="mb-5" backup="password" />
         <h2 className="mb-3 text-lg font-semibold">Waiting for approval</h2>
         {error && <p role="alert" className="text-sm font-medium text-destructive">{error}</p>}
         {list && list.length === 0 && <p className="rounded-lg bg-muted p-6 text-center text-text-2">No one is waiting for approval.</p>}

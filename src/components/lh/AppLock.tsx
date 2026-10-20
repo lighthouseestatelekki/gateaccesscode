@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Fingerprint, Lock } from "lucide-react";
 import { Keypad, PinBoxes, usePin, Wordmark } from "@/components/lh/ui";
 import { markActive, shouldLock, unlockWithPin } from "@/lib/applock";
 import { codeToUnit } from "@/lib/units";
 import { useMe } from "@/lib/useMe";
 import { supabase } from "@/lib/supabase";
+import { confirmWithPasskey, passkeyOnThisPhone } from "@/lib/passkey";
 
 const RESIDENT_SCREENS = /^\/(home|codes|staff|inbox|more|insights|hadith|fixit|household|moving|create-code|code-created|sos)(\/|$)/;
 
@@ -63,6 +64,19 @@ export function AppLock() {
     setBusy(false);
   });
 
+  async function unlockWithFinger() {
+    setBusy(true);
+    setError("");
+    try {
+      await confirmWithPasskey();
+      markActive();
+      setLocked(false);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+    setBusy(false);
+  }
+
   const show = locked && me?.role === "resident" && RESIDENT_SCREENS.test(pathname);
   if (!show) return null;
   const first = me.full_name.trim().split(/\s+/)[0];
@@ -80,6 +94,15 @@ export function AppLock() {
         </div>
       </header>
       <main className="sheet flex flex-1 flex-col gap-5 px-5 pt-6">
+        {passkeyOnThisPhone() && (
+          <button
+            onClick={unlockWithFinger}
+            disabled={busy}
+            className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 text-base font-semibold text-primary-foreground disabled:opacity-40"
+          >
+            <Fingerprint className="size-5" /> Unlock with fingerprint
+          </button>
+        )}
         <h2 className="text-center text-lg font-bold">{busy ? "Checking…" : "Enter your PIN to continue"}</h2>
         <PinBoxes value={pin.value} />
         {error && <p role="alert" className="text-center text-sm font-medium text-destructive">{error}</p>}
