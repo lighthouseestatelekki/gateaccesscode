@@ -57,6 +57,7 @@ async function call<T = Json>(body: Json): Promise<T> {
     } catch {
       /* keep message */
     }
+    if (/failed to send a request|failed to fetch|not found/i.test(msg)) msg = "Fingerprint sign-in is not available yet. Please use your PIN for now.";
     throw new Error(msg);
   }
   if (data && typeof data === "object" && "error" in data) throw new Error(String((data as Json)["error"]));

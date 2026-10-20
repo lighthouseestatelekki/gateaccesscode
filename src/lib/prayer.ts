@@ -108,20 +108,23 @@ export function clock(d: Date) {
   return `${h % 12 || 12}:${String(s.getUTCMinutes()).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 }
 
-const MONTHS: Record<string, string> = {
-  "Rabiʻ I": "Rabi al-Awwal", "Rabiʻ II": "Rabi al-Thani", "Rabi I": "Rabi al-Awwal", "Rabi II": "Rabi al-Thani",
-  "Jumada I": "Jumada al-Awwal", "Jumada II": "Jumada al-Thani", "Shaʻban": "Shaban", "Dhuʻl-Qiʻdah": "Dhul Qadah", "Dhuʻl-Hijjah": "Dhul Hijjah",
-};
+const HIJRI_MONTHS = ["Muharram", "Safar", "Rabi al-Awwal", "Rabi al-Thani", "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Shaban", "Ramadan", "Shawwal", "Dhul Qadah", "Dhul Hijjah"];
 
-/** Islamic (Hijri) date, e.g. "6 Jumada al-Awwal 1448 AH". The local moon sighting can differ by a day. */
+/**
+ * Islamic (Hijri) date, e.g. "9 Jumada al-Awwal 1448 AH". The local moon sighting can differ by a day.
+ * Uses month NUMBERS from the phone and our own month names: some Android phones lack the Islamic
+ * month names and would otherwise show Gregorian ones (e.g. "9 May 1448").
+ */
 export function hijriDate(now = new Date(), adjustDays = 0): string {
   const d = new Date(now.getTime() + adjustDays * 86_400_000);
   try {
-    const parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" }).formatToParts(d);
-    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-    const year = get("year").replace(/\s*AH$/i, "");
-    const month = MONTHS[get("month")] ?? get("month");
-    return `${get("day")} ${month} ${year} AH`;
+    const parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn", { day: "numeric", month: "numeric", year: "numeric", timeZone: "Africa/Lagos" }).formatToParts(d);
+    const num = (t: string) => Number((parts.find((p) => p.type === t)?.value ?? "").replace(/[^0-9]/g, ""));
+    const day = num("day");
+    const month = HIJRI_MONTHS[num("month") - 1];
+    const year = num("year");
+    if (!day || !month || year < 1400 || year > 1600) return "";
+    return `${day} ${month} ${year} AH`;
   } catch {
     return "";
   }
