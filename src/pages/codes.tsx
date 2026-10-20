@@ -1,9 +1,10 @@
 import { QuickDelivery } from "@/components/lh/QuickDelivery";
 import { useLocation } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
-import { Hero, Screen, Sheet } from "@/components/lh/ui";
+import { BottomSheet, Button, Hero, Screen, Sheet } from "@/components/lh/ui";
+import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
 import { CodeTicket } from "@/components/lh/CodeTicket";
-import { shareAccessCode } from "@/lib/expiry";
+import { computeExpiry, shareAccessCode } from "@/lib/expiry";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { ResidentTabs } from "@/components/lh/nav";
@@ -26,6 +27,12 @@ function Codes() {
   const [period, setPeriod] = useState<Period>(30);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Row | null>(null);
+  const [extendTarget, setExtendTarget] = useState<Row | null>(null);
+  const [extendOption, setExtendOption] = useState("Tomorrow");
+  const [extendPicked, setExtendPicked] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sheetError, setSheetError] = useState("");
 
   const load = useCallback(async () => {
     const nowIso = new Date().toISOString();
@@ -40,11 +47,42 @@ function Codes() {
     setRows((data ?? []) as Row[]);
   }, [status, kind, period]);
 
-  useEffect(() => {
-    if (!profile) return;
+  const refresh = useCallback(() => {
     load();
     supabase.rpc("my_code_counts").then(({ data }) => data && setCounts(data));
-  }, [profile, load]);
+  }, [load]);
+
+  useEffect(() => {
+    if (!profile) return;
+    refresh();
+  }, [profile, refresh]);
+
+  async function handleCancel() {
+    if (!cancelTarget) return;
+    setBusy(true);
+    setSheetError("");
+    const { error } = await supabase.rpc("cancel_my_code", { p_code_id: cancelTarget.id });
+    setBusy(false);
+    if (error) return setSheetError(error.message);
+    setCancelTarget(null);
+    refresh();
+  }
+
+  async function handleExtend() {
+    if (!extendTarget) return;
+    const now = new Date();
+    const expiry = computeExpiry(extendOption, now, extendPicked);
+    if (Number.isNaN(expiry.getTime()) || expiry.getTime() <= now.getTime() || expiry.getTime() <= new Date(extendTarget.valid_to).getTime()) {
+      return setSheetError("Please choose a later time.");
+    }
+    setBusy(true);
+    setSheetError("");
+    const { error } = await supabase.rpc("extend_my_code", { p_code_id: extendTarget.id, p_valid_to: expiry.toISOString() });
+    setBusy(false);
+    if (error) return setSheetError(error.message);
+    setExtendTarget(null);
+    refresh();
+  }
 
   if (!profile) return null;
   const now = new Date();
@@ -106,10 +144,27 @@ function Codes() {
               now={now}
               showCreated
               onShare={() => shareAccessCode({ code: c.code, validTo: c.valid_to, houseNumber: profile.house_number, hostName: profile.full_name, unitLabel, type: c.type, validFrom: c.valid_from })}
+              onExtend={() => { setExtendTarget(c); setExtendOption("Tomorrow"); setExtendPicked(""); setSheetError(""); }}
+              onCancel={() => { setCancelTarget(c); setSheetError(""); }}
             />
           ))}
         </ul>
       </Sheet>
+      <BottomSheet open={Boolean(cancelTarget)} onClose={() => !busy && setCancelTarget(null)} title="Cancel this code?">
+        <div className="space-y-3 pb-4">
+          <p className="text-base text-text-2">Your visitor will not be able to use this code.</p>
+          {sheetError && <p role="alert" className="text-sm font-medium text-destructive">{sheetError}</p>}
+          <Button variant="danger" disabled={busy} onClick={handleCancel}>{busy ? "Cancelling…" : "Yes, cancel code"}</Button>
+          <Button variant="outline" disabled={busy} onClick={() => setCancelTarget(null)}>Keep code</Button>
+        </div>
+      </BottomSheet>
+      <BottomSheet open={Boolean(extendTarget)} onClose={() => !busy && setExtendTarget(null)} title="Extend code">
+        <div className="space-y-4 pb-4">
+          <ExpiryOptions value={extendOption} onChange={setExtendOption} picked={extendPicked} onPickedChange={setExtendPicked} />
+          {sheetError && <p role="alert" className="text-sm font-medium text-destructive">{sheetError}</p>}
+          <Button disabled={busy} onClick={handleExtend}>{busy ? "Extending…" : "Extend code"}</Button>
+        </div>
+      </BottomSheet>
       <ResidentTabs />
     </Screen>
   );

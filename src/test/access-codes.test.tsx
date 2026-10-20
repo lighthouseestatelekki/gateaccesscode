@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { computeExpiry, formatUntil } from "@/lib/expiry";
 import CreateCode from "@/pages/create-code";
 import CodeCreated from "@/pages/code-created";
-import Home from "@/pages/home";
+import Codes from "@/pages/codes";
 
 const { mockRpc, mockGetSession, mockSingle, mockSignOut, mockLimit } = vi.hoisted(() => ({
   mockRpc: vi.fn(),
@@ -25,15 +25,11 @@ vi.mock("@/lib/supabase", () => ({
     },
     from: vi.fn((table: string) => {
       if (table === "access_codes") {
-        return {
-          select: vi.fn(() => ({
-            neq: vi.fn(() => ({
-              order: vi.fn(() => ({
-                limit: mockLimit,
-              })),
-            })),
-          })),
-        };
+        // any chain of filters, then awaited: resolves to mockLimit()
+        const chain: Record<string, unknown> = {};
+        for (const m of ["select", "neq", "eq", "order", "limit", "gte", "gt", "is", "not", "or"]) chain[m] = vi.fn(() => chain);
+        chain["then"] = (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) => Promise.resolve(mockLimit()).then(res, rej);
+        return chain;
       }
       return {
         select: vi.fn(() => ({
@@ -174,9 +170,9 @@ describe("Create access code page", () => {
 
 function openHome() {
   render(
-    <MemoryRouter initialEntries={["/home"]}>
+    <MemoryRouter initialEntries={["/codes"]}>
       <Routes>
-        <Route path="/home" element={<Home />} />
+        <Route path="/codes" element={<Codes />} />
         <Route path="/create-code" element={<CreateCode />} />
         <Route path="/login" element={<p>LOGIN PAGE</p>} />
       </Routes>
@@ -184,7 +180,7 @@ function openHome() {
   );
 }
 
-describe("Home access codes — Cancel, Extend, and Cancelled status", () => {
+describe("My codes — Cancel, Extend, and Cancelled status", () => {
   it("Cancel calls rpc('cancel_my_code') with the code id", async () => {
     mockLimit.mockResolvedValue({
       data: [

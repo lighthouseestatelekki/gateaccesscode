@@ -2,19 +2,18 @@ import { QuickDelivery } from "@/components/lh/QuickDelivery";
 import { Link, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { Plus, ShieldAlert } from "lucide-react";
-import { CodeTicket, Initial } from "@/components/lh/CodeTicket";
-import { ExpiryOptions } from "@/components/lh/ExpiryOptions";
+import { Initial } from "@/components/lh/CodeTicket";
 import { SetupCard } from "@/components/lh/SetupCard";
-import { PrayerCard } from "@/components/lh/PrayerCard";
-import { BottomSheet, Button, btnClass, Hero, Screen, Sheet, Wordmark } from "@/components/lh/ui";
-import { computeExpiry, shareAccessCode } from "@/lib/expiry";
+import { TodayCarousel } from "@/components/lh/TodayCarousel";
+import { InsightsSnapshot } from "@/components/lh/InsightsSnapshot";
+import { ExploreGrid } from "@/components/lh/ExploreGrid";
+import { btnClass, Hero, Screen, Sheet, Wordmark } from "@/components/lh/ui";
 import { supabase } from "@/lib/supabase";
 import { codeToUnit } from "@/lib/units";
 import { ResidentTabs } from "@/components/lh/nav";
 import { useResident } from "@/lib/useResident";
 import { useInbox } from "@/lib/useInbox";
 import { useMe } from "@/lib/useMe";
-import { dailyHadith, HADITH_ATTRIBUTION, hadith } from "@/mock/hadith";
 
 export const title = "Home";
 
@@ -33,21 +32,10 @@ type AccessCodeRow = {
 function Home() {
   const nav = useNavigate();
   const profile = useResident();
-  const [h, setH] = useState(hadith[0]!);
   const [codes, setCodes] = useState<AccessCodeRow[]>([]);
   const [counts, setCounts] = useState<{ active: number; used: number; expired: number; cancelled: number; total: number } | null>(null);
 
-  const [cancelTarget, setCancelTarget] = useState<AccessCodeRow | null>(null);
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState("");
 
-  const [extendTarget, setExtendTarget] = useState<AccessCodeRow | null>(null);
-  const [extendOption, setExtendOption] = useState("Tomorrow");
-  const [extendPicked, setExtendPicked] = useState("");
-  const [extending, setExtending] = useState(false);
-  const [extendError, setExtendError] = useState("");
-
-  useEffect(() => setH(dailyHadith()!), []);
 
   const loadCodes = useCallback(async () => {
     const { data } = await supabase
@@ -55,7 +43,7 @@ function Home() {
       .select("id,code,holder_name,valid_to,valid_from,type,active,used_at,created_at")
       .neq("type", "employee")
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(20);
     if (data) setCodes(data as AccessCodeRow[]);
     const { data: c } = await supabase.rpc("my_code_counts");
     if (c) setCounts(c);
@@ -83,59 +71,6 @@ function Home() {
       recentVisitors.push(name);
       if (recentVisitors.length === 4) break;
     }
-  }
-
-  const now = new Date();
-
-  async function handleCancel() {
-    if (!cancelTarget) return;
-    setCancelError("");
-    setCancelling(true);
-
-    const { error } = await supabase.rpc("cancel_my_code", { p_code_id: cancelTarget.id });
-    if (error) {
-      setCancelError(error.message);
-      setCancelling(false);
-      return;
-    }
-
-    setCancelling(false);
-    setCancelTarget(null);
-    await loadCodes();
-  }
-
-  async function handleExtend() {
-    if (!extendTarget) return;
-    const currentNow = new Date();
-    const expiry = computeExpiry(extendOption, currentNow, extendPicked);
-    const currentValidTo = new Date(extendTarget.valid_to);
-
-    if (
-      Number.isNaN(expiry.getTime()) ||
-      expiry.getTime() <= currentNow.getTime() ||
-      expiry.getTime() <= currentValidTo.getTime()
-    ) {
-      setExtendError("Please choose a later time.");
-      return;
-    }
-
-    setExtendError("");
-    setExtending(true);
-
-    const { error } = await supabase.rpc("extend_my_code", {
-      p_code_id: extendTarget.id,
-      p_valid_to: expiry.toISOString(),
-    });
-
-    if (error) {
-      setExtendError(error.message);
-      setExtending(false);
-      return;
-    }
-
-    setExtending(false);
-    setExtendTarget(null);
-    await loadCodes();
   }
 
   return (
@@ -178,7 +113,7 @@ function Home() {
 
         <SetupCard userId={me?.id} hasCodes={(counts?.total ?? codes.length) > 0} />
 
-        <PrayerCard />
+        <TodayCarousel />
 
         {recentVisitors.length > 0 && (
           <section>
@@ -201,108 +136,10 @@ function Home() {
           </section>
         )}
 
-        <section>
-          <div className="mb-3 flex items-end justify-between">
-            <div>
-              <h2 className="text-lg font-bold">Latest codes</h2>
-              {counts && counts.active > 0 && <p className="text-sm text-text-2">{counts.active} working right now</p>}
-            </div>
-            {counts && counts.total > 0 && <Link to="/codes" className="inline-flex min-h-11 items-center text-sm font-bold text-primary">See all</Link>}
-          </div>
-          {codes.length === 0 ? (
-            <div className="rounded-[22px] border-2 border-dashed border-border p-6 text-center">
-              <p className="font-semibold">No codes yet</p>
-              <p className="mt-1 text-sm text-text-2">Create one above and share it with your visitor.</p>
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {codes.map((c) => (
-                <CodeTicket
-                  key={c.id}
-                  c={c}
-                  now={now}
-                  onShare={() =>
-                    shareAccessCode({ code: c.code, validTo: c.valid_to, houseNumber: profile.house_number, hostName: profile.full_name, unitLabel, type: c.type, validFrom: c.valid_from })
-                  }
-                  onExtend={() => {
-                    setExtendTarget(c);
-                    setExtendOption("Tomorrow");
-                    setExtendPicked("");
-                    setExtendError("");
-                    setExtending(false);
-                  }}
-                  onCancel={() => {
-                    setCancelTarget(c);
-                    setCancelError("");
-                    setCancelling(false);
-                  }}
-                />
-              ))}
-            </ul>
-          )}
-        </section>
+        <InsightsSnapshot />
 
-        <section className="deep-card relative overflow-hidden rounded-lg p-6">
-          <span aria-hidden className="pointer-events-none absolute -top-3 right-4 font-display text-9xl font-extrabold leading-none text-gold/25">”</span>
-          <p className="text-xs font-bold uppercase tracking-widest text-gold">Daily hadith</p>
-          <p className="relative mt-3 font-display text-xl font-medium leading-snug text-white">“{h.text}”</p>
-          <div className="relative mt-4 flex items-end justify-between gap-3">
-            <p className="text-xs leading-6 text-gold/90">{HADITH_ATTRIBUTION}</p>
-            <Link to="/hadith" className="shrink-0 py-2 text-sm font-bold text-primary">More hadith</Link>
-          </div>
-        </section>
+        <ExploreGrid />
       </Sheet>
-      <BottomSheet
-        open={Boolean(cancelTarget)}
-        onClose={() => {
-          if (!cancelling) {
-            setCancelTarget(null);
-            setCancelError("");
-          }
-        }}
-        title="Cancel this code?"
-      >
-        <div className="space-y-3 pb-4">
-          <p className="text-base text-text-2">Your visitor will not be able to use this code.</p>
-          {cancelError && <p role="alert" className="text-sm font-medium text-destructive">{cancelError}</p>}
-          <Button variant="danger" disabled={cancelling} onClick={handleCancel}>
-            {cancelling ? "Cancelling…" : "Yes, cancel code"}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={cancelling}
-            onClick={() => {
-              setCancelTarget(null);
-              setCancelError("");
-            }}
-          >
-            Keep code
-          </Button>
-        </div>
-      </BottomSheet>
-      <BottomSheet
-        open={Boolean(extendTarget)}
-        onClose={() => {
-          if (!extending) {
-            setExtendTarget(null);
-            setExtendError("");
-          }
-        }}
-        title="Extend code"
-      >
-        <div className="space-y-4 pb-4">
-          <ExpiryOptions
-            value={extendOption}
-            onChange={setExtendOption}
-            picked={extendPicked}
-            onPickedChange={setExtendPicked}
-          />
-          {extendError && <p role="alert" className="text-sm font-medium text-destructive">{extendError}</p>}
-          <Button disabled={extending} onClick={handleExtend}>
-            {extending ? "Extending…" : "Extend code"}
-          </Button>
-        </div>
-      </BottomSheet>
       <ResidentTabs />
     </Screen>
   );

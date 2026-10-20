@@ -22,7 +22,7 @@ export function PrayerCard() {
   const hijri = hijriDate(now);
 
   return (
-    <section aria-label="Prayer times" className="deep-card overflow-hidden rounded-[22px] p-4">
+    <section aria-label="Prayer times" className="deep-card h-full overflow-hidden rounded-[22px] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-gold">Next prayer</p>

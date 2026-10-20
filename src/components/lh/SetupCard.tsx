@@ -7,6 +7,21 @@ import { alertStatus, enableAlerts, type AlertStatus } from "@/lib/push";
 import { cn } from "@/lib/utils";
 
 const HIDE = "lh.setupHidden";
+const DONE = "lh.setupDone";
+const seen = (k: string) => {
+  try {
+    return localStorage.getItem(k) === "1";
+  } catch {
+    return false;
+  }
+};
+const remember = (k: string) => {
+  try {
+    localStorage.setItem(k, "1");
+  } catch {
+    /* ignore */
+  }
+};
 
 /**
  * "Finish setting up" for new residents. Starts part-done (registered + approved),
@@ -15,13 +30,8 @@ const HIDE = "lh.setupHidden";
 export function SetupCard({ userId, hasCodes }: { userId: string | null | undefined; hasCodes: boolean }) {
   const [alerts, setAlerts] = useState<AlertStatus | null>(null);
   const [installed, setInstalled] = useState(isInstalled);
-  const [hidden, setHidden] = useState(() => {
-    try {
-      return localStorage.getItem(HIDE) === "1";
-    } catch {
-      return false;
-    }
-  });
+  // Once every step has been done on this phone (or the card was closed), it never comes back.
+  const [hidden, setHidden] = useState(() => seen(HIDE) || seen(DONE));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [how, setHow] = useState<"" | "install" | "ios">("");
@@ -61,7 +71,10 @@ export function SetupCard({ userId, hasCodes }: { userId: string | null | undefi
   items.push({ key: "code", t: "Invite your first visitor", d: "Create a code and share it on WhatsApp.", done: hasCodes, to: "/create-code" });
 
   const done = items.filter((i) => i.done).length;
-  if (done === items.length) return null;
+  if (done === items.length) {
+    remember(DONE);
+    return null;
+  }
   const pct = Math.round((done / items.length) * 100);
 
   return (
@@ -72,7 +85,7 @@ export function SetupCard({ userId, hasCodes }: { userId: string | null | undefi
           <p className="text-sm text-text-2">{items.length - done} quick {items.length - done === 1 ? "step" : "steps"} left</p>
         </div>
         <span className="font-display text-2xl font-extrabold text-primary">{pct}%</span>
-        <button aria-label="Hide" onClick={() => { setHidden(true); try { localStorage.setItem(HIDE, "1"); } catch { /* ignore */ } }} className="-mr-2 flex size-10 items-center justify-center text-muted-foreground"><X className="size-4" /></button>
+        <button aria-label="Hide" onClick={() => { setHidden(true); remember(HIDE); }} className="-mr-2 flex size-10 items-center justify-center text-muted-foreground"><X className="size-4" /></button>
       </div>
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-mint-light" aria-hidden="true">
         <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
